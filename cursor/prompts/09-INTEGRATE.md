@@ -1,6 +1,6 @@
 # Step 9: Ecosystem Integration
 
-Integrate generated demo assets into the Case Study Maker and Git Launcher ecosystems. Offer to update project files with demo links and attribution.
+Integrate generated demo assets into the Case Study Maker and Git Launcher ecosystems. After every demo generation, check for companion plugins and offer to embed platform-specific videos into their outputs.
 
 ---
 
@@ -19,9 +19,9 @@ Add a new event to `.case-study/events.json`:
   "metadata": {
     "duration": 60,
     "voiceTone": "casual-dev",
-    "platforms": ["github", "twitter", "producthunt"],
+    "platforms": ["github", "twitter", "producthunt", "instagram", "tiktok", "gif"],
     "sceneCount": 6,
-    "videoPath": "demo-output/demo-full.mp4",
+    "videoPath": "OUTPUT/{run-id}/demo-full.mp4",
     "capturesTool": "playwright",
     "narrationTool": "elevenlabs",
     "ffmpegVersion": "6.0"
@@ -29,23 +29,37 @@ Add a new event to `.case-study/events.json`:
 }
 ```
 
-This allows Case Study Maker (on next run) to:
-- Reference the demo in generated case studies
-- Embed demo video in case study narrative
-- Track project milestones with demo generation date
+### Step 2: Embed Demos in Case Study Pages
 
-### Step 2: Offer to Update Case Study Description
+If Case Study Maker has generated output pages (check `OUTPUTS/` or the case study output directory), embed the full demo into the appropriate pages:
+
+| Demo File | Case Study Target | Embed Location |
+|-----------|------------------|----------------|
+| `demo-full.mp4` | Marketing page | Hero video section |
+| `demo-full.mp4` | Portfolio page | Demo section |
+
+For each target page, insert a video embed block:
+
+```html
+<section class="demo-video">
+  <h2>See It in Action</h2>
+  <video controls poster="OUTPUT/{run-id}/thumbnails/thumbnail.png" style="width:100%; max-width:800px; border-radius:8px;">
+    <source src="OUTPUT/{run-id}/demo-full.mp4" type="video/mp4">
+  </video>
+  <p>60-second narrated demo. <a href="https://github.com/{user}/{repo}">View on GitHub</a></p>
+</section>
+```
+
+### Step 3: Offer to Update Case Study README
 
 If `.case-study/README.md` exists, offer to add:
 
 ```markdown
 ## Demo
 
-This project has a narrated product demo video. Watch it to see [Feature] in action:
-
 - **Full demo** (60s): [demo-full.mp4](../OUTPUT/{run-id}/demo-full.mp4)
 - **Quick version** (30s): [demo-twitter.mp4](../OUTPUT/{run-id}/demo-twitter.mp4)
-- **GIF for README**: [demo-github.gif](../OUTPUT/{run-id}/demo-github.gif)
+- **GIF for README**: [demo-gif.mp4](../OUTPUT/{run-id}/demo-gif.mp4)
 
 Generated with [Demo Maker](https://github.com/julieclarkson/demo-maker).
 ```
@@ -56,80 +70,75 @@ Generated with [Demo Maker](https://github.com/julieclarkson/demo-maker).
 
 If `git-launch/` directory exists:
 
-### Step 1: Offer README.md Update
+### Step 1: Embed demo-github.mp4 in README
 
-In `git-launch/README.md`, offer to add demo section:
+In `git-launch/README.md` (or the project root `README.md`), add the demo section with the GitHub-optimized video:
 
 ```markdown
 ## Demo
 
 Watch a 60-second demo of [Project Name] in action:
 
-[![Watch demo](../OUTPUT/{run-id}/thumbnails/thumbnail.png)](../OUTPUT/{run-id}/demo-full.mp4)
-
-**Quick versions:**
-- [Twitter (30s)](../OUTPUT/{run-id}/demo-twitter.mp4)
-- [Product Hunt (45s)](../OUTPUT/{run-id}/demo-producthunt.mp4)
+[![Watch demo](OUTPUT/{run-id}/thumbnails/thumbnail.png)](OUTPUT/{run-id}/demo-github.mp4)
 
 Made with [Demo Maker](https://github.com/julieclarkson/demo-maker).
 ```
 
-### Step 2: Offer Social Media Launch Kit Updates
+Also embed `demo-gif.mp4` as an inline preview for platforms that auto-play short clips:
 
-If `git-launch/LAUNCH_KIT/` exists with social post templates:
-
-Update each platform's post with demo links:
-
-**Twitter Post** (`LAUNCH_KIT/twitter.md`):
 ```markdown
-# Twitter Launch Post
-
-Just shipped [Project Name]!
-
-Watch it in action (30s):
-[DEMO LINK]
-
-It's [primary benefit]. No setup required.
-
-[GitHub link]
-[Try it link]
-
-Made with @demo_maker
+![Quick preview](OUTPUT/{run-id}/demo-gif.mp4)
 ```
 
-**Product Hunt Post** (`LAUNCH_KIT/producthunt.md`):
-```markdown
-# Product Hunt Launch
+### Step 2: Embed Platform Demos in Launch Kit
 
-## Description
-[Original description]
+If `git-launch/LAUNCH_KIT/` exists, update each platform post with its matched demo.
 
-## Video Demo
-Watch our 45-second product demo: [DEMO LINK]
+Read `config/demo-integration-map.json` for the authoritative mapping. Apply these embeds:
 
-Made with Demo Maker.
-```
+**Twitter thread** (`LAUNCH_KIT/twitter-thread.md`):
+- Attach `demo-twitter.mp4` (30s cut)
+- Add line: `Attach video: OUTPUT/{run-id}/demo-twitter.mp4`
+- Note: "Upload this 30-second video when posting. First 3 seconds must hook — this cut is optimized for autoplay-without-sound."
 
-**Dev.to / Hacker News** (`LAUNCH_KIT/devto.md`, `LAUNCH_KIT/hn.md`):
-```markdown
-Check out our **product demo** to see [Feature] in action:
-[DEMO LINK]
+**Product Hunt listing** (`LAUNCH_KIT/producthunt-listing.md`):
+- Attach `demo-producthunt.mp4` (45s cut)
+- Add section:
+  ```markdown
+  ## Video Demo
+  Upload this 45-second demo to your Product Hunt gallery: `OUTPUT/{run-id}/demo-producthunt.mp4`
+  ```
 
-Made with Demo Maker.
-```
+**Instagram post** (`LAUNCH_KIT/instagram-post.md` if exists):
+- Attach `demo-instagram.mp4` (vertical 1080x1920)
+- Add line: `Attach video: OUTPUT/{run-id}/demo-instagram.mp4 (optimized for Instagram Reels, 1080x1920)`
+
+**TikTok post** (`LAUNCH_KIT/tiktok-post.md` if exists):
+- Attach `demo-tiktok.mp4` (vertical 1080x1920)
+- Add line: `Attach video: OUTPUT/{run-id}/demo-tiktok.mp4 (optimized for TikTok, 1080x1920)`
+
+**Reddit post** (`LAUNCH_KIT/reddit-post.md`):
+- Embed `demo-gif.mp4` as inline preview
+- Add line: `Attach preview: OUTPUT/{run-id}/demo-gif.mp4 (short looping clip for inline preview)`
+
+**Hacker News post** (`LAUNCH_KIT/hackernews-post.md`):
+- Reference `demo-gif.mp4` for inline preview
+- Add line near top: `Demo: OUTPUT/{run-id}/demo-gif.mp4`
+
+**Dev.to post** (`LAUNCH_KIT/devto-post.md`):
+- Embed `demo-full.mp4` or `demo-github.mp4` (Dev.to supports video embeds)
+- Add block:
+  ```markdown
+  {% video OUTPUT/{run-id}/demo-github.mp4 %}
+  ```
 
 ### Step 3: Offer Social Preview Update
 
-If `git-launch/social-preview.png` exists:
-
-Offer to generate a new preview using the best frame from the demo:
+If `git-launch/social-preview.png` exists, offer to replace with the best frame from the demo:
 
 ```bash
-cp demo-output/thumbnails/thumbnail.png \
-   git-launch/social-preview.png
+cp OUTPUT/{run-id}/thumbnails/thumbnail.png git-launch/social-preview.png
 ```
-
-This ensures Twitter/LinkedIn cards show a compelling demo frame.
 
 ---
 
@@ -161,18 +170,8 @@ Or HTML:
 
 ### Optional: Copy Assets to Project Root
 
-If user wants easy access, offer to run:
-
 ```bash
 bash scripts/apply-demo.sh
-```
-
-This script (if it exists) copies assets to predictable locations:
-```
-project-root/
-├── demo.mp4                 (symlink to demo-output/demo-full.mp4)
-├── demo.gif                 (symlink to demo-output/demo-github.gif)
-└── DEMO_CREDITS.md
 ```
 
 ### .gitignore Update
@@ -193,121 +192,175 @@ But keep in git:
 
 ---
 
-## Integration Execution
+## Part E: Post-Generation Integration Workflow
 
-### Step 1: Detect Integration Points
+This is the main integration flow that runs after every demo generation. It must be followed consistently.
 
-Check for:
-- [ ] `.case-study/events.json` → Case Study Maker
-- [ ] `git-launch/README.md` → Git Launcher
-- [ ] `git-launch/LAUNCH_KIT/` → Social post templates
-- [ ] `git-launch/social-preview.png` → Social card
+### Step 1: Detect Installed Plugins
 
-### Step 2: Offer User Choices
+Check for these directories in the project root:
+- `.case-study/` → Case Study Maker is installed
+- `git-launch/` → Git Launcher is installed
 
-Present checklist:
+Record which are present.
+
+### Step 2: Ask the User
+
+If at least one companion plugin is detected:
 
 ```
-🔗 Ecosystem Integration Options
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Demo generation complete. These companion plugins are installed:
 
-Available integrations:
+[x] Case Study Maker (.case-study/ found)
+[x] Git Launcher (git-launch/ found)
 
-[ ] Case Study Maker
-    └─ Append demo_generated event to events.json
-
-[ ] Git Launcher
-    ├─ Add demo section to README.md
-    ├─ Update LAUNCH_KIT social posts
-    └─ Update social-preview.png
-
-[ ] General
-    └─ Copy assets to project root (symlinks)
-
-Select which to apply: [all / case-study / git-launch / none]
+Would you like to integrate your platform-specific demos into the
+case study pages and launch kit outputs? [yes / no]
 ```
 
-### Step 3: Apply Selected Integrations
+If user answers **yes**, proceed to Step 3.
+If user answers **no**, skip to Part F (Summary).
 
-For each selected integration:
+### Step 3: Load the Integration Map
 
-1. Create backup of original file (optional, if git not available)
-2. Apply updates
-3. Show diff for user review
-4. Ask for confirmation
-5. Commit changes (if git available)
+Read `config/demo-integration-map.json` (from the Demo Maker plugin root). This file defines the authoritative mapping:
 
-### Step 4: Generate Attribution Files
+| Demo File | Target Plugin | Target Output(s) | Embed Type |
+|-----------|--------------|-------------------|------------|
+| `demo-full.mp4` | Case Study Maker | marketing-page, portfolio-page | hero-video |
+| `demo-github.mp4` | Git Launcher | README.md | demo-section |
+| `demo-twitter.mp4` | Git Launcher | LAUNCH_KIT/twitter-thread.md | media-attachment |
+| `demo-producthunt.mp4` | Git Launcher | LAUNCH_KIT/producthunt-listing.md | gallery-video |
+| `demo-instagram.mp4` | Git Launcher | LAUNCH_KIT/instagram-post.md | media-attachment |
+| `demo-tiktok.mp4` | Git Launcher | LAUNCH_KIT/tiktok-post.md | media-attachment |
+| `demo-gif.mp4` | Git Launcher | README.md, LAUNCH_KIT/reddit-post.md, LAUNCH_KIT/hackernews-post.md | inline-preview |
 
-Create `demo-output/CREDITS.md`:
+### Step 4: Apply Integrations
 
-```markdown
-# Demo Credits
+For each entry in the map:
 
-**Demo generated with [Demo Maker](https://github.com/julieclarkson/demo-maker)**
+1. Check that the demo file exists in `OUTPUT/{run-id}/`
+2. Check that the target output file exists
+3. If both exist, embed the demo reference into the target file (using the format from Part A or Part B above)
+4. If target does not exist yet (e.g., launch kit not yet generated), note it and offer to generate via the companion plugin first
 
-## Generated Assets
+Show progress as each integration is applied:
+```
+Integrating demos...
+  demo-full.mp4       → Case Study marketing page    ✓
+  demo-full.mp4       → Case Study portfolio page     ✓
+  demo-github.mp4     → Git Launcher README           ✓
+  demo-twitter.mp4    → Launch Kit Twitter thread      ✓
+  demo-producthunt.mp4 → Launch Kit Product Hunt       ✓
+  demo-instagram.mp4  → Launch Kit Instagram post      ✓
+  demo-tiktok.mp4     → Launch Kit TikTok post         ✓
+  demo-gif.mp4        → Git Launcher README (preview)  ✓
+  demo-gif.mp4        → Launch Kit Reddit post         ✓
+  demo-gif.mp4        → Launch Kit Hacker News post    ✓
+```
 
-- `demo-full.mp4` — 60-second master demo
-- `demo-twitter.mp4` — 30-second version for Twitter/X
-- `demo-producthunt.mp4` — 45-second version for Product Hunt
-- `demo-github.gif` — GIF for README embedding
-- `captions/` — Subtitle files (SRT)
-- `thumbnails/` — Frame captures for social media
+### Step 5: Ask Where to Push
 
-Each demo run creates a unique timestamped folder: `OUTPUT/demo-{YYYYMMDD}-{HHmmss}/`
+After all integrations are applied, ask the user:
 
-## Tools & Services
+```
+Integration complete. Updated files are ready to push.
 
-- **Screen Recording**: Playwright
-- **Voice Narration**: ElevenLabs (or fallback TTS)
-- **Video Rendering**: FFmpeg
-- **Video Editing**: Demo Maker
+Which repository should the updated files go to?
 
-## Attribution
+1. Case Study pages → repo URL: _______________
+   (e.g. https://github.com/username/website or https://github.com/username/project)
 
-If you use or share this demo, please include:
+2. Git Launcher outputs → repo URL: _______________
+   (e.g. https://github.com/username/project)
 
-> Made with [Demo Maker](https://github.com/julieclarkson/demo-maker)
+3. Both to the same repo → repo URL: _______________
 
-## License
+Enter repo URL(s) or "skip" to push later:
+```
 
-The demo video is provided under the same license as the project code.
+If the user provides repo URL(s):
+1. Stage the updated files
+2. Commit with message: `Integrate Demo Maker platform videos into case study and launch kit`
+3. Push to the specified remote(s)
+4. Report success with the commit hash and remote URL
+
+If the user says "skip":
+- Note that files are updated locally and can be pushed later
+- Show the list of modified files so the user can review
+
+### Step 6: Handle Missing Plugins
+
+If neither `.case-study/` nor `git-launch/` exists:
+
+```
+Demo generation complete.
+
+Demo Maker works best alongside two companion plugins that
+automatically receive your platform-specific demo videos:
+
+1. Case Study Maker — generates marketing pages, portfolio pages,
+   and pitch decks from your build process. Demo Maker embeds your
+   full demo video directly into those pages.
+   Install: https://github.com/julieclarkson/case-study-maker
+
+2. Git Launcher — generates platform-specific launch posts
+   (Reddit, Hacker News, Twitter, Product Hunt, Instagram, TikTok,
+   Dev.to). Demo Maker maps each platform demo to its matching post.
+   Install: https://github.com/julieclarkson/git-launcher
+
+Would you like to install either of these for future projects? [yes / no / skip]
+```
+
+If the user says yes, provide the clone commands:
+```bash
+# For Cursor:
+git clone https://github.com/julieclarkson/case-study-maker .cursor/plugins/case-study-maker
+git clone https://github.com/julieclarkson/git-launcher .cursor/plugins/git-launcher
+
+# For Claude Code:
+git clone https://github.com/julieclarkson/case-study-maker .claude/plugins/case-study-maker
+git clone https://github.com/julieclarkson/git-launcher-claude .claude/plugins/git-launcher
 ```
 
 ---
 
-## Summary Report
+## Part F: Summary Report
 
-After all integrations complete, show:
+After all integrations complete (or are skipped), show:
 
 ```
-✅ Integration Complete
+Integration Complete
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Generated Assets:
-├── OUTPUT/{run-id}/demo-full.mp4          (60s, 18.4 MB)
-├── OUTPUT/{run-id}/demo-twitter.mp4       (30s, 6.8 MB)
-├── OUTPUT/{run-id}/demo-producthunt.mp4   (45s, 12.2 MB)
-├── OUTPUT/{run-id}/demo-github.gif        (60s, 11.3 MB)
-├── OUTPUT/{run-id}/captions/              (3 SRT files)
-├── OUTPUT/{run-id}/thumbnails/            (3 PNG files)
+├── OUTPUT/{run-id}/demo-full.mp4          (60s)
+├── OUTPUT/{run-id}/demo-github.mp4        (60s)
+├── OUTPUT/{run-id}/demo-twitter.mp4       (30s)
+├── OUTPUT/{run-id}/demo-producthunt.mp4   (45s)
+├── OUTPUT/{run-id}/demo-instagram.mp4     (vertical)
+├── OUTPUT/{run-id}/demo-tiktok.mp4        (vertical)
+├── OUTPUT/{run-id}/demo-gif.mp4           (short loop)
+├── OUTPUT/{run-id}/captions/
+├── OUTPUT/{run-id}/thumbnails/
 ├── OUTPUT/{run-id}/script.md
 └── OUTPUT/{run-id}/CREDITS.md
 
+Companion Plugin Status:
+  Case Study Maker:  [installed / not installed]
+  Git Launcher:      [installed / not installed]
+
 Integrations Applied:
-✓ Case Study Maker (events.json updated)
-✓ Git Launcher (README.md + social posts updated)
-✓ General attribution (CREDITS.md created)
+  [list each integration that was applied, or "none" if skipped]
+
+Push Status:
+  [repo URL + commit hash, or "not pushed — files updated locally"]
 
 Next Steps:
-1. Review git changes: git diff
-2. Commit to git: git add -A && git commit -m "Add product demo"
-3. Push to GitHub: git push
-4. Share demo on social media (Twitter, Product Hunt, etc.)
-5. Update project website with demo link
-
-All done! 🎉
+1. Review changes: git diff
+2. Push if not already pushed
+3. Share demos on social media
+4. Update project website with demo link
 ```
 
 ---
@@ -318,24 +371,24 @@ All done! 🎉
 What would you like to do next?
 
 1. Preview git changes (git diff)
-2. Commit changes to git
+2. Commit and push changes
 3. Open demo in browser
-4. Share demo on social media
-5. Regenerate with different settings
-6. Export demo to external service (Slack, Discord, etc.)
-7. Done!
+4. Regenerate with different settings
+5. Done!
 
-Your choice: [1-7]
+Your choice: [1-5]
 ```
 
 ---
 
 ## Error Handling
 
-- **No `.case-study/` found**: Skip Case Study integration; note in summary
-- **No `git-launch/` found**: Skip Git Launcher integration; note in summary
+- **No `.case-study/` found**: Skip Case Study integration; offer install link
+- **No `git-launch/` found**: Skip Git Launcher integration; offer install link
+- **Target output file not found**: Note which file is missing; offer to generate via companion plugin
 - **Git not available**: Offer manual file edits instead
 - **Integration file conflicts**: Show diff, ask to proceed or skip
+- **Push fails**: Show error, suggest manual push command
 
 ---
 
@@ -344,49 +397,13 @@ Your choice: [1-7]
 Before declaring workflow complete:
 
 - [ ] All 9 steps executed (or logged as skipped)
-- [ ] `demo-output/` contains all expected files
-- [ ] All files have reasonable sizes and durations
+- [ ] `OUTPUT/{run-id}/` contains all expected demo files
+- [ ] Companion plugins were detected and user was prompted
+- [ ] If user said yes: all demo-to-output mappings were applied
+- [ ] If user said yes: push destination was asked and files were pushed (or noted for later)
+- [ ] If plugins not installed: install links were offered
 - [ ] Attribution is present in video + markdown
 - [ ] User has reviewed and approved final demo
-- [ ] Integration offers were presented and applied (or declined)
-- [ ] Context summary is complete and accurate
-
----
-
-## End of Workflow
-
-Present final summary:
-
-```
-🎉 Demo Generation Workflow Complete
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Project:        [PROJECT_NAME]
-Type:           [TYPE]
-Demo Duration:  60 seconds
-Platforms:      GitHub, Twitter, Product Hunt
-Total Assets:   ~70 MB
-Generated:      2026-03-10 at 14:32 UTC
-
-Output Location: OUTPUT/{run-id}/
-
-Thank you for using Demo Maker!
-For issues or feedback: github.com/julieclarkson/demo-maker
-```
-
----
-
-## Optionally: Offer Advanced Options
-
-```
-Advanced:
-- Regenerate with different tone/focus
-- Re-render with higher quality (larger file)
-- Add custom clips or branding
-- Create long-form version for YouTube
-
-Type "help" for more options.
-```
 
 ---
 

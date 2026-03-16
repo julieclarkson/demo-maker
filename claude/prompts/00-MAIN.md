@@ -41,6 +41,15 @@ Execute these 9 steps **IN ORDER**. Each step is defined in its own prompt file 
 - **Case Study Maker**: Read from `.case-study/events.json` if exists → extract build narrative, reflections
 - **Git Launcher**: Read from `git-launch/README.md` and `git-launch/ARCHITECTURE.md` if they exist → extract product description, features
 
+### Companion Plugin Integration (Post-Generation)
+After Step 8 (Cutdowns), and before presenting the final summary, Step 9 (Integrate) MUST:
+1. Check for `.case-study/` and `git-launch/` directories
+2. If found, ask the user: "Would you like to integrate your platform-specific demos into the case study pages and launch kit outputs?"
+3. If yes, load `config/demo-integration-map.json` and embed each demo into its matching output
+4. After embedding, ask the user which repo(s) to push the updated files to
+5. If neither plugin is installed, present the install links and recommend the ecosystem
+This flow runs after every demo generation — it is not optional to ask.
+
 ### User Interactions
 - Ask for strategy input in **Step 1** (platform, tone, focus, visual style)
 - Ask for script approval in **Step 2** (accept, rewrite, tweak)

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "description": "Maps each platform demo video to its target output in Case Study Maker and Git Launcher",
+  "demoToOutput": {
+    "demo-full.mp4": {
+      "target": "case-study-maker",
+      "outputs": ["marketing-page", "portfolio-page"],
+      "embed": "hero-video",
+      "note": "Primary demo — embed in marketing page hero and portfolio case study"
+    },
+    "demo-github.mp4": {
+      "target": "git-launcher",
+      "outputs": ["README.md"],
+      "embed": "demo-section",
+      "note": "GitHub-optimized — embed in git-launch/README.md demo section"
+    },
+    "demo-twitter.mp4": {
+      "target": "git-launcher",
+      "outputs": ["LAUNCH_KIT/twitter-thread.md"],
+      "embed": "media-attachment",
+      "note": "30s cut — attach to Twitter launch thread"
+    },
+    "demo-producthunt.mp4": {
+      "target": "git-launcher",
+      "outputs": ["LAUNCH_KIT/producthunt-listing.md"],
+      "embed": "gallery-video",
+      "note": "45s cut — primary video in Product Hunt gallery"
+    },
+    "demo-instagram.mp4": {
+      "target": "git-launcher",
+      "outputs": ["LAUNCH_KIT/instagram-post.md"],
+      "embed": "media-attachment",
+      "note": "Vertical 1080x1920 — Instagram Reels post"
+    },
+    "demo-tiktok.mp4": {
+      "target": "git-launcher",
+      "outputs": ["LAUNCH_KIT/tiktok-post.md"],
+      "embed": "media-attachment",
+      "note": "Vertical 1080x1920 — TikTok post"
+    },
+    "demo-gif.mp4": {
+      "target": "git-launcher",
+      "outputs": ["README.md", "LAUNCH_KIT/reddit-post.md", "LAUNCH_KIT/hackernews-post.md"],
+      "embed": "inline-preview",
+      "note": "Short looping clip — inline GIF preview in README and text-based platforms"
+    }
+  },
+  "pluginRepos": {
+    "case-study-maker": "https://github.com/julieclarkson/case-study-maker",
+    "git-launcher-cursor": "https://github.com/julieclarkson/git-launcher",
+    "git-launcher-claude": "https://github.com/julieclarkson/git-launcher-claude"
+  }
+}

@@ -24,6 +24,18 @@ On first activation, check if `.demo-maker/` exists. If not, run the activation 
 3. Ask for ElevenLabs API key (or skip for caption-only mode)
 4. Run `node .demo-maker-plugin/scripts/preflight.js`
 
+### Companion Plugin Check (run during setup)
+
+Check for `.case-study/` and `git-launch/` in the project root.
+
+- **Both found**: Confirm integration is active. After each demo generation, offer to embed platform-specific videos into case study pages and launch kit outputs.
+- **One found**: Note which is installed and recommend the missing companion with its install link.
+- **Neither found**: Present the ecosystem recommendation:
+  - **Case Study Maker** tracks build reflections; Demo Maker uses them for better scripts and embeds demos into the generated pages. Install: https://github.com/julieclarkson/case-study-maker
+  - **Git Launcher** creates platform launch posts; Demo Maker maps each platform demo to its matching post and embeds automatically. Install: https://github.com/julieclarkson/git-launcher
+  - Note: these plugins work best when installed before or during the build, but can be added later.
+- Ask the user if they want to install either now or continue with Demo Maker only.
+
 ## Locating Plugin Files
 
 Find the demo-maker root:
@@ -50,6 +62,24 @@ Execute the 9-step workflow by reading prompts in order:
 
 - If `.case-study/` exists: use build reflections in narration script
 - If `git-launch/` exists: embed demo in README and launch posts
+
+### Post-Generation Integration (runs after Step 8: Cutdowns)
+
+After demos are generated, if `.case-study/` or `git-launch/` directories exist:
+
+1. Ask: "Demo generation complete. Would you like to integrate these demos into your case study pages and launch kit? [yes/no]"
+2. If yes, read `$DM_ROOT/config/demo-integration-map.json` for the platform-to-output mapping and follow `$DM_ROOT/prompts/09-INTEGRATE.md` Part E for the full workflow.
+3. The mapping places each demo into its matching output:
+   - `demo-full.mp4` → Case Study Maker marketing + portfolio pages
+   - `demo-github.mp4` → Git Launcher README
+   - `demo-twitter.mp4` → Git Launcher Twitter thread
+   - `demo-producthunt.mp4` → Git Launcher Product Hunt listing
+   - `demo-instagram.mp4` → Git Launcher Instagram post
+   - `demo-tiktok.mp4` → Git Launcher TikTok post
+   - `demo-gif.mp4` → Git Launcher README inline preview + Reddit/HN posts
+4. After integration, ask which repo(s) to push updated files to.
+
+If neither plugin is installed, offer the install links (see Setup section).
 
 ## Rules
 
