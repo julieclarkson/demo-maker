@@ -38,7 +38,7 @@ Execute these 9 steps **IN ORDER**. Each step is defined in its own prompt file 
 - Store all analysis + strategy answers in context; reuse across steps
 
 ### Integration Points
-- **Case Study Maker**: Read from `.case-study/events.json` if exists → extract build narrative, reflections
+- **Case Study Maker** (soft dependency): Read from `.case-study/events.json` if exists → extract build narrative, reflections. Demo Maker works without CSM, but narration scripts are significantly better when real build reflections are available. If `.case-study/` is missing, note this to the user during Step 1 (Analyze).
 - **Git Launcher**: Read from `git-launch/README.md` and `git-launch/ARCHITECTURE.md` if they exist → extract product description, features
 
 ### Companion Plugin Integration (Post-Generation)

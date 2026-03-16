@@ -7,6 +7,45 @@ description: "Initialize Demo Maker for the current project. Creates the .demo-m
 
 Set up demo generation for the current project.
 
+## Step 0: Recommend the Plugin Trio
+
+Before creating any files, present this to the user:
+
+```
+Demo Maker is part of a three-plugin ecosystem that takes your
+project from build → demo → launch.
+
+THE RECOMMENDED WORKFLOW:
+  1. Case Study Maker — captures reflections as you build
+  2. Demo Maker — generates narrated demo videos from your codebase
+  3. Git Launcher — generates README, launch posts, and social assets
+
+IMPORTANT: Demo Maker works best when Case Study Maker is installed
+FIRST. It reads your .case-study/ reflections to write more authentic
+narration scripts. Without it, Demo Maker still works — but the
+script quality benefits significantly from real build context.
+
+HOW THEY CONNECT:
+  - Demo Maker reads .case-study/ reflections → better narration
+  - Case Study Maker embeds your demos in marketing/portfolio pages
+  - Git Launcher embeds your demos in README and launch posts
+
+INSTALL (Claude Desktop Cowork):
+  Case Study Maker: https://github.com/julieclarkson/case-study-maker-claude
+  Demo Maker:       https://github.com/julieclarkson/demo-maker
+  Git Launcher:     https://github.com/julieclarkson/git-launcher-claude
+
+All three are free, local-only, and write output to your project
+folder. No cloud, no API keys (except ElevenLabs for voice).
+
+Would you like to install the companion plugins now, or continue
+with Demo Maker only? [install / continue]
+```
+
+If the user says **install**, provide setup commands. If the user says **continue**, proceed to Step 1.
+
+**If `.case-study/` does not exist**, add a note: "Case Study Maker is not installed. Demo Maker will still work, but the narration scripts will be based on code analysis alone — not your real build decisions. Consider installing Case Study Maker first: https://github.com/julieclarkson/case-study-maker-claude"
+
 ## Steps
 
 1. Create the `.demo-maker/` directory in the project root.
@@ -110,8 +149,29 @@ node scripts/preflight.js
     - Show dependency status
     - Show API key status (connected / caption-only mode)
     - Show companion plugin status (installed / not installed + links)
-    - "Demo Maker is ready. Run `/demo-maker:demo` to generate your first demo."
+    - Present the workflow and available commands:
+
+```
+Demo Maker is ready. Here's the full workflow:
+
+GENERATE A DEMO:
+  /demo-maker:demo  or  "make a demo"
+
+COMPANION PLUGINS:
+  /case-study-maker:activate     — start tracking build reflections
+  /case-study-maker:generate     — generate portfolio/marketing pages
+  /git-launcher:git-launch       — generate README + launch posts
+
+RECOMMENDED ORDER:
+  1. Capture reflections as you build (Case Study Maker)
+  2. Generate demos → /demo-maker:demo (you are here)
+  3. Generate case study pages → /case-study-maker:generate
+  4. Generate launch kit → /git-launcher:git-launch
+
+After demo generation, Demo Maker will offer to embed your
+platform-specific videos into case study pages and launch posts.
+```
 
 ## Scope
 
-All demo data stays inside the project folder under `.demo-maker/` and `demo-output/`. Nothing is written outside the project root. API keys are stored locally only and never transmitted except to their respective APIs.
+All demo data stays inside the project folder under `.demo-maker/` and `OUTPUT/`. Nothing is written outside the project root. API keys are stored locally only and never transmitted except to their respective APIs. All plugins read each other's output from local directories — this works whether plugins are installed manually, via Git clone, or from the marketplace.
