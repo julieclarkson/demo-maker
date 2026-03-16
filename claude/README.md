@@ -149,7 +149,7 @@ During strategy, Demo Maker generates audio previews so you can listen and pick:
 Demo Maker works standalone, and also integrates with:
 
 - **[Case Study Maker](https://github.com/julieclarkson/case-study-maker)** — Uses your build reflections and decisions to write authentic narration scripts grounded in your actual development journey
-- **[Git Launcher](https://github.com/julieclarkson/git-launcher-claude)** — Embeds your demo video/GIF into your README and platform-specific launch posts
+- **[Git Launcher](https://github.com/julieclarkson/git-launcher)** — Embeds your demo video/GIF into your README and platform-specific launch posts
 
 ## Anti-Slop System
 

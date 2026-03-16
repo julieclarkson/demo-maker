@@ -31,9 +31,9 @@ HOW THEY CONNECT:
   - Git Launcher embeds your demos in README and launch posts
 
 INSTALL (Claude Desktop Cowork):
-  Case Study Maker: https://github.com/julieclarkson/case-study-maker-claude
+  Case Study Maker: https://github.com/julieclarkson/case-study-maker
   Demo Maker:       https://github.com/julieclarkson/demo-maker
-  Git Launcher:     https://github.com/julieclarkson/git-launcher-claude
+  Git Launcher:     https://github.com/julieclarkson/git-launcher
 
 All three are free, local-only, and write output to your project
 folder. No cloud, no API keys (except ElevenLabs for voice).
@@ -44,7 +44,7 @@ with Demo Maker only? [install / continue]
 
 If the user says **install**, provide setup commands. If the user says **continue**, proceed to Step 1.
 
-**If `.case-study/` does not exist**, add a note: "Case Study Maker is not installed. Demo Maker will still work, but the narration scripts will be based on code analysis alone — not your real build decisions. Consider installing Case Study Maker first: https://github.com/julieclarkson/case-study-maker-claude"
+**If `.case-study/` does not exist**, add a note: "Case Study Maker is not installed. Demo Maker will still work, but the narration scripts will be based on code analysis alone — not your real build decisions. Consider installing Case Study Maker first: https://github.com/julieclarkson/case-study-maker"
 
 ## Steps
 

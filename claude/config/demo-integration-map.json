@@ -48,6 +48,6 @@
   "pluginRepos": {
     "case-study-maker": "https://github.com/julieclarkson/case-study-maker",
     "git-launcher-cursor": "https://github.com/julieclarkson/git-launcher",
-    "git-launcher-claude": "https://github.com/julieclarkson/git-launcher-claude"
+    "git-launcher": "https://github.com/julieclarkson/git-launcher"
   }
 }

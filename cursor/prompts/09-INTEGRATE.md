@@ -320,7 +320,7 @@ git clone https://github.com/julieclarkson/git-launcher .cursor/plugins/git-laun
 
 # For Claude Code:
 git clone https://github.com/julieclarkson/case-study-maker .claude/plugins/case-study-maker
-git clone https://github.com/julieclarkson/git-launcher-claude .claude/plugins/git-launcher
+git clone https://github.com/julieclarkson/git-launcher .claude/plugins/git-launcher
 ```
 
 ---
