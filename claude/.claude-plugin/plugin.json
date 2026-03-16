@@ -1,0 +1,41 @@
+{
+  "name": "demo-maker",
+  "displayName": "Demo Maker",
+  "description": "Generate narrated MP4 product demos from your codebase — automatically. Analyzes your project, scripts a compelling walkthrough, captures it via Playwright, narrates with ElevenLabs, and renders a polished video. No cloud, no video editing. Integrates with Case Study Maker and Git Launcher.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Julie Clarkson",
+    "email": "julie@superfly.dev"
+  },
+  "homepage": "https://github.com/julieclarkson/demo-maker",
+  "repository": "https://github.com/julieclarkson/demo-maker",
+  "license": "MIT",
+  "logo": "assets/logo.svg",
+  "keywords": [
+    "demo",
+    "video",
+    "product-demo",
+    "narration",
+    "playwright",
+    "elevenlabs",
+    "ffmpeg",
+    "developer-tools",
+    "marketing",
+    "launch",
+    "case-study",
+    "screen-recording"
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-demo-staleness.js"
+          }
+        ]
+      }
+    ]
+  }
+}

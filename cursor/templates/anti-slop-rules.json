@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "script": {
+    "bannedWords": [
+      "revolutionize", "game-changer", "seamlessly", "leverage", "empower",
+      "synergy", "cutting-edge", "next-generation", "robust", "scalable",
+      "enterprise-grade", "best-in-class", "unlock", "supercharge",
+      "turbocharge", "delightful", "disrupt", "paradigm", "holistic",
+      "innovative", "groundbreaking", "world-class", "state-of-the-art",
+      "bleeding-edge", "mission-critical", "transformative", "bespoke",
+      "thought-leader", "deep-dive", "granular", "move the needle",
+      "low-hanging fruit", "circle back", "take it offline"
+    ],
+    "replacements": {
+      "revolutionize": "improve",
+      "game-changer": "useful tool",
+      "seamlessly": "smoothly",
+      "leverage": "use",
+      "empower": "help",
+      "robust": "reliable",
+      "scalable": "handles growth",
+      "innovative": "new approach",
+      "cutting-edge": "modern",
+      "unlock": "enable",
+      "supercharge": "speed up",
+      "delightful": "pleasant"
+    },
+    "maxAdjectivesPerSentence": 2,
+    "maxExclamationMarks": 1,
+    "maxBuzzwordsPerScript": 0,
+    "wordsPerSecond": 2.5,
+    "tolerancePercent": 15,
+    "requireSpecificClaims": true,
+    "noFakeMetrics": true,
+    "commonAdjectives": [
+      "amazing", "incredible", "awesome", "fantastic", "wonderful",
+      "beautiful", "stunning", "gorgeous", "magnificent", "tremendous",
+      "powerful", "elegant", "sophisticated", "comprehensive", "intuitive"
+    ]
+  },
+  "visual": {
+    "bannedTransitions": ["zoom_burst", "star_wipe", "3d_flip", "glitch", "pixelate", "iris", "spin", "cube"],
+    "allowedTransitions": ["cut", "fade", "crossfade"],
+    "maxCrossfades": 2,
+    "captionFont": "system-ui, -apple-system, sans-serif",
+    "captionFontMono": "SF Mono, Menlo, Consolas, monospace",
+    "noBackgroundMusicDefault": true,
+    "noStockFootage": true,
+    "noGenericBRoll": true,
+    "noCheesyZoom": true
+  },
+  "voice": {
+    "naturalPacingRequired": true,
+    "minPauseBetweenSegments_ms": 300,
+    "maxPauseBetweenSegments_ms": 800,
+    "noMachineGunDelivery": true
+  },
+  "watermark": {
+    "text": "Made with Demo Maker",
+    "url": "https://github.com/julieclarkson/demo-maker",
+    "position": "bottom-right",
+    "visibleDuration_s": 3,
+    "opacity": 0.7,
+    "fontSize": 14
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "platforms": {
+    "github": {
+      "name": "GitHub README",
+      "maxDuration": 60,
+      "aspectRatio": "16:9",
+      "resolution": { "width": 1920, "height": 1080 },
+      "format": "mp4",
+      "maxFileSize": "25MB",
+      "gifFallback": {
+        "enabled": true,
+        "maxWidth": 800,
+        "fps": 15,
+        "maxFileSize": "10MB"
+      },
+      "embedding": "![Demo](demo/demo-github.gif)",
+      "notes": "GIF auto-plays in README. MP4 requires link."
+    },
+    "twitter": {
+      "name": "Twitter / X",
+      "maxDuration": 30,
+      "aspectRatio": "16:9",
+      "resolution": { "width": 1280, "height": 720 },
+      "format": "mp4",
+      "maxFileSize": "15MB",
+      "notes": "Keep under 30s for maximum engagement. Hook in first 3 seconds."
+    },
+    "producthunt": {
+      "name": "Product Hunt",
+      "maxDuration": 45,
+      "aspectRatio": "16:9",
+      "resolution": { "width": 1920, "height": 1080 },
+      "format": "mp4",
+      "maxFileSize": "50MB",
+      "notes": "Product Hunt supports longer videos. Focus on problem-solution narrative."
+    },
+    "youtube": {
+      "name": "YouTube",
+      "maxDuration": 180,
+      "aspectRatio": "16:9",
+      "resolution": { "width": 1920, "height": 1080 },
+      "format": "mp4",
+      "maxFileSize": "256MB",
+      "notes": "Full demo. Can include intro and outro."
+    }
+  },
+  "segments": {
+    "hook": { "description": "State the problem", "targetDuration": { "30": 4, "45": 6, "60": 7, "180": 12 }, "priority": 5 },
+    "context": { "description": "Who has this problem", "targetDuration": { "30": 0, "45": 5, "60": 7, "180": 15 }, "priority": 2 },
+    "demo": { "description": "Show the product", "targetDuration": { "30": 18, "45": 24, "60": 34, "180": 120 }, "priority": 5 },
+    "result": { "description": "Show the outcome", "targetDuration": { "30": 3, "45": 5, "60": 7, "180": 18 }, "priority": 3 },
+    "cta": { "description": "Where to get it", "targetDuration": { "30": 5, "45": 5, "60": 5, "180": 15 }, "priority": 4 }
+  }
+}

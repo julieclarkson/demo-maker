@@ -1,0 +1,183 @@
+# Demo Maker — Claude Desktop Cowork Plugin
+
+Your product is built. Now demo it properly.
+
+Demo Maker is an AI agent plugin that reads your finished codebase and generates a narrated MP4 product demo — automatically. It analyzes your project, writes a script, captures visuals, narrates with ElevenLabs, and renders video with Remotion. You get a ~60-second full demo plus platform-specific cut-downs for Twitter/X, Product Hunt, GitHub, and YouTube.
+
+**No cloud. No video editing. No slop.** Runs entirely within Claude Desktop Cowork. You bring your own API keys.
+
+## Setup
+
+### 1. Clone and copy the plugin
+
+```bash
+git clone https://github.com/julieclarkson/demo-maker.git
+cp -r demo-maker/production/claude/ your-project/.claude/plugins/demo-maker/
+```
+
+### 2. Install dependencies
+
+Demo Maker requires Node.js and FFmpeg on your machine. Remotion (the video engine) needs to be installed once:
+
+```bash
+cd your-project/.claude/plugins/demo-maker/remotion
+npm install
+```
+
+This installs Remotion and React locally inside the plugin. It only needs to happen once.
+
+### 3. Set up API keys
+
+Open Claude Desktop Cowork, select your project folder, and activate:
+
+```
+/demo-maker:activate
+```
+
+This creates a `.demo-maker/` directory in your project. Then create your `.env` file:
+
+```bash
+cp .demo-maker/.env.example .demo-maker/.env
+```
+
+Open `.demo-maker/.env` in any text editor and paste your keys:
+
+```
+# Required for voice narration
+ELEVENLABS_API_KEY=your-key-here
+
+# Optional fallback voice
+OPENAI_API_KEY=your-key-here
+
+# Optional — for AI-generated cinematic video clips
+GOOGLE_API_KEY=your-key-here
+RUNWAY_API_KEY=your-key-here
+```
+
+Where to get keys:
+
+- **ElevenLabs** — https://elevenlabs.io/ → Profile → API Key (free tier available)
+- **OpenAI** — https://platform.openai.com/api-keys
+- **Google Veo 3** — https://aistudio.google.com/apikey
+- **Runway Gen-3** — https://app.runwayml.com/ → Settings → API Keys
+
+The `.env` file is gitignored and the AI agent cannot read it. Keys are only used for outbound API calls.
+
+### 4. Generate a demo
+
+```
+/demo-maker:demo
+```
+
+Or just tell Claude: "make a demo"
+
+## Prerequisites
+
+| Dependency | Required | How to install |
+|---|---|---|
+| Node.js >= 18 | Yes | https://nodejs.org or `brew install node` |
+| FFmpeg | Yes | `brew install ffmpeg` (Mac) or https://ffmpeg.org |
+| Remotion npm packages | Yes | `cd remotion && npm install` (once) |
+| ElevenLabs API key | Recommended | Free tier at https://elevenlabs.io |
+| Google API key (Veo 3) | Optional | For AI cinematic clips |
+| Runway API key | Optional | For AI cinematic clips |
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `/demo-maker:activate` | Initialize Demo Maker, create .demo-maker/ directory |
+| `/demo-maker:demo` | Run the full demo generation workflow |
+| `/demo-maker:dm` | Shortcut for demo |
+
+## What Gets Generated
+
+Each demo run creates a unique timestamped folder so you never overwrite previous demos:
+
+```
+OUTPUT/
+└── demo-20260310-143022/
+    ├── demo-full.mp4           # ~60s full narrated demo
+    ├── demo-twitter.mp4         # 30s cut-down for Twitter/X
+    ├── demo-producthunt.mp4     # 45s cut-down for Product Hunt
+    ├── demo-github.mp4          # 60s version for GitHub
+    ├── demo-github.gif          # GIF fallback for README embedding
+    ├── captions/
+    │   ├── demo-full.srt
+    │   ├── demo-twitter.srt
+    │   └── demo-producthunt.srt
+    ├── thumbnails/
+    │   └── thumbnail.png
+    └── script.md                # Final approved narration script
+```
+
+## How It Works
+
+1. **Analyze** — Scans your codebase to understand what it does, tech stack, and structure
+2. **Strategy** — Asks creative direction questions: platform, voice (with audio previews), visual tier, color scheme, animation style, dynamism, and focus
+3. **Script** — Generates narration script with anti-slop validation, presents for approval
+4. **Storyboard** — Plans scenes, visuals, timing, and transitions
+5. **Capture** — Records your product in action via Playwright (web apps) or terminal recorder (CLI tools)
+6. **Narrate** — Generates voice via ElevenLabs with preview/selection (or OpenAI TTS fallback, or caption-only)
+7. **Render** — Assembles video with Remotion: React-based scenes, motion graphics, optional AI clips, captions, watermark
+8. **Cut-Downs** — Auto-generates platform-specific versions from the full demo
+9. **Integrate** — Links demo into Case Study Maker and Git Launcher ecosystems
+
+## Visual Tiers
+
+Demo Maker supports four visual quality levels. You choose during the strategy step:
+
+| Tier | Cost | What you get |
+|---|---|---|
+| HTML + CSS | Free | Clean motion graphics, code-driven animations |
+| Remotion | Free | React-based video, Lottie/Rive characters, Three.js 3D, smooth transitions |
+| Remotion + AI clips | Paid | Remotion base with 1-2 AI cinematic clips from Veo 3 or Runway |
+| Full AI video | Paid | All scenes generated by AI video models for a cinematic commercial feel |
+
+## Voice Options
+
+During strategy, Demo Maker generates audio previews so you can listen and pick:
+
+- **Dev Casual** — conversational, slightly fast, like showing a friend what you built
+- **Tech Explainer** — clear, measured, like a senior engineer walking through architecture
+- **Storyteller** — warm, narrative, slower pace, like a founder at a meetup
+- **Founder** — confident, direct, energetic, like a YC demo day pitch
+- **Custom** — describe any voice and Demo Maker will design it ("young female dev, Australian accent")
+
+## Integrations
+
+Demo Maker works standalone, and also integrates with:
+
+- **[Case Study Maker](https://github.com/julieclarkson/case-study-maker)** — Uses your build reflections and decisions to write authentic narration scripts grounded in your actual development journey
+- **[Git Launcher](https://github.com/julieclarkson/git-launcher-claude)** — Embeds your demo video/GIF into your README and platform-specific launch posts
+
+## Anti-Slop System
+
+Demo Maker enforces content quality rules to prevent AI-generated demos from looking like marketing spam:
+
+- **Banned buzzwords** — No "revolutionize", "game-changer", "seamlessly", or 40+ other offenders
+- **Adjective limits** — Max 2 adjectives per sentence
+- **Specific claims only** — Every claim in the script must have a matching screen capture
+- **No fake metrics** — No "10x faster" without evidence
+- **Minimal transitions** — Hard cuts and simple fades only. No star wipes.
+- **No stock footage** — Everything shown is your actual product
+- **Natural voice pacing** — Pauses between segments, not machine-gun delivery
+
+## Security
+
+- All data stays local — nothing leaves your machine except API calls to your configured providers
+- API keys stored in `.demo-maker/.env`, which is gitignored
+- The AI agent cannot read your `.env` file — keys are loaded by Node.js scripts at runtime
+- Playwright only connects to localhost (SSRF prevention)
+- Captured frames are scanned for secrets and redacted
+- No telemetry, no analytics, no cloud uploads
+
+## Also Available for Cursor
+
+This plugin is also available as a [Cursor IDE plugin](https://github.com/julieclarkson/demo-maker). Initialize with `bash dm-init.sh` or install from the Cursor marketplace.
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
+Built by [Julie Clarkson](https://superflyweb.com)

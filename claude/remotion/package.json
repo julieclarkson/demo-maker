@@ -1,0 +1,25 @@
+{
+  "name": "demo-maker-remotion",
+  "version": "1.0.0",
+  "description": "Remotion video engine for Demo Maker",
+  "scripts": {
+    "start": "npx remotion studio",
+    "render": "npx remotion render DemoVideo demo-output/demo-full.mp4",
+    "render:twitter": "npx remotion render DemoVideo demo-output/demo-twitter.mp4 --props='{\"platform\":\"twitter\"}'",
+    "render:producthunt": "npx remotion render DemoVideo demo-output/demo-producthunt.mp4 --props='{\"platform\":\"producthunt\"}'",
+    "render:gif": "npx remotion render DemoVideo demo-output/demo-github.gif --image-format=png --every-nth-frame=2"
+  },
+  "dependencies": {
+    "remotion": "^4.0.0",
+    "@remotion/player": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "@remotion/gif": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/react": "^18.2.0"
+  }
+}

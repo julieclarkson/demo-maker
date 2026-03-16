@@ -1,0 +1,53 @@
+{
+  "presets": {
+    "dev-casual": {
+      "name": "Dev Casual",
+      "description": "Young, conversational, slightly fast. Like a developer showing a friend what they built.",
+      "elevenlabs": {
+        "voiceId": "pNInz6obpgDQGcFmaJgB",
+        "voiceName": "Adam",
+        "model": "eleven_multilingual_v2",
+        "settings": { "stability": 0.45, "similarity_boost": 0.75, "style": 0.35 }
+      },
+      "openai": { "voice": "onyx", "model": "tts-1", "speed": 1.05 }
+    },
+    "tech-explainer": {
+      "name": "Tech Explainer",
+      "description": "Clear, measured, authoritative. Like a senior engineer walking through architecture.",
+      "elevenlabs": {
+        "voiceId": "ErXwobaYiN019PkySvjV",
+        "voiceName": "Antoni",
+        "model": "eleven_multilingual_v2",
+        "settings": { "stability": 0.6, "similarity_boost": 0.8, "style": 0.2 }
+      },
+      "openai": { "voice": "echo", "model": "tts-1", "speed": 0.95 }
+    },
+    "storyteller": {
+      "name": "Storyteller",
+      "description": "Warm, narrative, slower pace. Like a founder at a meetup sharing their journey.",
+      "elevenlabs": {
+        "voiceId": "VR6AewLTigWG4xSOukaG",
+        "voiceName": "Arnold",
+        "model": "eleven_multilingual_v2",
+        "settings": { "stability": 0.5, "similarity_boost": 0.7, "style": 0.45 }
+      },
+      "openai": { "voice": "fable", "model": "tts-1", "speed": 0.9 }
+    },
+    "founder": {
+      "name": "Founder",
+      "description": "Confident, direct, energetic. Like a YC demo day pitch.",
+      "elevenlabs": {
+        "voiceId": "TxGEqnHWrfWFTfGW9XjX",
+        "voiceName": "Josh",
+        "model": "eleven_multilingual_v2",
+        "settings": { "stability": 0.55, "similarity_boost": 0.85, "style": 0.4 }
+      },
+      "openai": { "voice": "alloy", "model": "tts-1", "speed": 1.1 }
+    }
+  },
+  "defaults": {
+    "provider": "elevenlabs",
+    "preset": "dev-casual",
+    "fallbackOrder": ["elevenlabs", "openai", "caption-only"]
+  }
+}

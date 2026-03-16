@@ -1,0 +1,36 @@
+{
+  "allowed": {
+    "cut": {
+      "name": "Hard Cut",
+      "description": "Instant switch. Default for most scene changes.",
+      "ffmpeg": "",
+      "duration_ms": 0,
+      "usage": "Between any scenes. Most common."
+    },
+    "fade": {
+      "name": "Fade",
+      "description": "Fade to/from black. Use for opening and closing only.",
+      "ffmpeg": "fade=t=in:st=0:d=0.5,fade=t=out:st={end}:d=0.5",
+      "duration_ms": 500,
+      "usage": "Opening scene (fade in), closing scene (fade out). Never mid-demo."
+    },
+    "crossfade": {
+      "name": "Crossfade",
+      "description": "Brief dissolve between two related scenes.",
+      "ffmpeg": "xfade=transition=fade:duration=0.3:offset={offset}",
+      "duration_ms": 300,
+      "usage": "Between closely related scenes only. Max 2 per demo."
+    }
+  },
+  "banned": [
+    "zoom_burst", "star_wipe", "3d_flip", "glitch", "pixelate",
+    "iris", "slide", "wipe", "dissolve_long", "spin", "cube",
+    "page_curl", "ripple", "shatter", "mosaic"
+  ],
+  "rules": {
+    "maxCrossfadesPerDemo": 2,
+    "openingTransition": "fade",
+    "closingTransition": "fade",
+    "defaultTransition": "cut"
+  }
+}

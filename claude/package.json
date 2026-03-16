@@ -1,0 +1,25 @@
+{
+  "name": "demo-maker",
+  "version": "1.0.0",
+  "description": "Generate narrated MP4 product demos from your codebase — automatically. No cloud, no video editing. User brings their own API keys.",
+  "author": {
+    "name": "Julie Clarkson",
+    "email": "julie@superfly.dev",
+    "url": "https://superflyweb.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/julieclarkson/demo-maker"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "keywords": [
+    "demo", "video", "product-demo", "narration", "playwright",
+    "elevenlabs", "ffmpeg", "developer-tools", "case-study"
+  ]
+}
