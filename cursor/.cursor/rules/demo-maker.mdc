@@ -106,6 +106,17 @@ After demos are generated, if `.case-study/` or `git-launch/` directories exist:
 
 If neither plugin is installed, offer the install links (see Setup section).
 
+### Step 10: Publish Demos to YouTube (optional)
+
+After demos are generated (and optionally integrated), offer to publish to YouTube:
+
+1. Ask: "Would you like to publish these demos to YouTube? This uploads all videos with optimized titles, descriptions, and tags, and returns embeddable URLs."
+2. If yes, read `$DM_ROOT/prompts/10-PUBLISH.md` and follow the workflow.
+3. Requires `YOUTUBE_CLIENT_ID` and `YOUTUBE_CLIENT_SECRET` in `.demo-maker/.env`.
+4. Run: `node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}"`
+5. Display all YouTube URLs to the user.
+6. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
+
 ## Rules
 
 - All outputs go to `demo-output/` at project root
