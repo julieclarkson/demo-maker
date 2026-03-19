@@ -1,19 +1,24 @@
 # Step 10 — Publish Demos
 
-Upload rendered demo videos to YouTube and save embeddable URLs.
+Upload demo videos and get embeddable URLs.
 
-## Prerequisites
+## Methods
 
-- Demo videos rendered (Step 8 complete — `OUTPUT/demo-{timestamp}/` exists)
-- A YouTube account (any Google account with a YouTube channel)
-- ffmpeg installed (for thumbnail generation)
-- No API keys, no developer setup, no browser automation
+### GitHub Release (default — fully automated)
 
-## How it works
+- Videos uploaded as release assets via `gh` CLI
+- No manual steps, no dragging, no pasting
+- URLs returned instantly
+- Works great for embedding in pages, READMEs, and launch kits
+- Requires: `gh` CLI authenticated (`gh auth login`)
 
-The script creates a complete upload package — organized folders with each video, auto-generated thumbnails, metadata files (title, description, tags, audience, language, subtitles, end screen guidance, cards guidance, copyright, visibility), and a master upload guide. You drag each folder's contents into YouTube Studio in your own browser. After uploading, paste the URLs back and the script auto-matches them to your videos.
+### YouTube (optional — manual upload)
 
-Your password and browser session never leave your machine. The AI never sees your login.
+- Script generates a metadata package (thumbnails, titles, descriptions, tags)
+- You upload manually in your own browser
+- Paste URLs back and the script auto-matches them
+- Best when you want videos on YouTube specifically
+- Requires: A YouTube account, ffmpeg (for thumbnails)
 
 ## Workflow
 
@@ -29,73 +34,75 @@ Confirm with the user which run to publish if multiple exist.
 
 ### 2. Run the publisher
 
+**GitHub Release (default):**
+
 ```bash
-node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --privacy public
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --repo "owner/repo"
+```
+
+**YouTube (manual):**
+
+```bash
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --method youtube
 ```
 
 Arguments:
 - First argument: path to the demo run directory
-- `--project`: display name for the project (used in video titles)
-- `--privacy`: `public` (default), `unlisted`, or `private`
+- `--project`: display name for the project (used in video titles/release name)
+- `--repo`: GitHub repo in `owner/name` format (auto-detected from git remote if omitted)
+- `--method`: `github` (default) or `youtube`
 
-### 3. Phase 1 — Package generation
+### 3. GitHub Release flow
 
-The script creates `OUTPUT/demo-{timestamp}/youtube-upload/` with:
+The script:
+1. Creates a tagged release on the repo (e.g. `demo-20260316-142115`)
+2. Uploads all video files as release assets (one `gh release create` command)
+3. Fetches the download URLs for each asset
+4. Saves everything to `video-urls.json`
+
+That's it. No manual steps.
+
+### 4. YouTube flow
+
+**Phase 1 — Package generation:**
+
+The script creates `OUTPUT/demo-{timestamp}/youtube-upload/` with numbered subfolders:
 
 ```
 youtube-upload/
-  UPLOAD-GUIDE.txt          ← Master reference with all metadata
+  UPLOAD-GUIDE.txt
   01-demo-full/
     demo-full.mp4           ← Video file (symlink)
-    thumbnail.jpg           ← Auto-generated (replace with your own if desired)
-    metadata.txt            ← All fields: title, description, tags, etc.
-    subtitles.txt           ← From narration script (if available)
+    thumbnail.jpg           ← Auto-generated
+    metadata.txt            ← All fields
+    subtitles.txt           ← From narration script
   02-demo-github/
-    ...
-  03-demo-twitter/
     ...
 ```
 
-Each `metadata.txt` includes:
-- **Title**: Optimized for the platform
-- **Description**: From narration + repo link
-- **Thumbnail**: Auto-generated from frame at 2 seconds (replaceable)
-- **Audience**: Not made for kids
-- **Language**: English
-- **Subtitles**: Extracted from narration script
-- **Tags**: Project name, framework, language, "demo", "product demo"
-- **End Screen**: Guidance to add "Best for viewer" + Subscribe button
-- **Cards**: Guidance to link to project repo
-- **Copyright**: Original content declaration
-- **Visibility**: Public (or as specified)
+Each `metadata.txt` includes: Title, Description, Thumbnail, Audience, Language, Subtitles, Tags, End Screen, Cards, Copyright, Visibility.
 
-### 4. Phase 2 — Manual upload
+**Phase 2 — Manual upload:**
 
-The script opens the `youtube-upload/` folder and YouTube Studio. For each numbered folder, the user:
-1. Drags the .mp4 into YouTube Studio
-2. Copies metadata from `metadata.txt` (title, description, tags)
-3. Uploads `thumbnail.jpg` as custom thumbnail
-4. Sets audience, language, visibility per the metadata
-5. Clicks Publish
+Opens the folder and YouTube Studio. Drag each video in, paste metadata.
 
-### 5. Phase 3 — URL collection
+**Phase 3 — URL collection:**
 
-After all uploads, the user goes to YouTube Studio → Content, copies the shareable link for each video, and pastes them all into the terminal (one per line). The script uses YouTube's public oEmbed API to read each video's title and auto-match it to the correct demo. No authentication needed.
+Paste all YouTube URLs (one per line). The script auto-matches via oEmbed.
 
-If auto-matching fails, the script asks the user to manually pick which video the URL belongs to.
+### 5. Companion plugin integration
 
-### 6. Companion plugin integration
+After publishing, remind the user:
 
-After collecting URLs, remind the user:
-
-> These YouTube URLs are now available to companion plugins:
-> - **Case Study Maker**: Run `/generate` — marketing and portfolio pages will auto-embed the YouTube video
-> - **Git Launcher**: Run `/git-launch` — README and launch kit posts will include YouTube links
+> Video URLs are now available to companion plugins:
+> - **Case Study Maker**: Run `/generate` — pages auto-embed the video
+> - **Git Launcher**: Run `/git-launch` — README and posts include video links
 >
-> The plugins read `youtube-urls.json` automatically. No manual URL copying needed.
+> The plugins read `video-urls.json` automatically. No manual URL copying needed.
 
 ## Error handling
 
-- **Thumbnail generation fails**: User can create their own thumbnail and replace `thumbnail.jpg` in the folder
-- **oEmbed matching fails**: Script falls back to manual selection (pick from a numbered list)
-- **Interrupted mid-upload**: Re-run the command — the package folder persists, just skip to Phase 3
+- **gh not authenticated**: Run `gh auth login` first
+- **Release tag already exists**: Script uploads assets to the existing release
+- **Thumbnail generation fails**: Replace `thumbnail.jpg` manually (YouTube only)
+- **oEmbed matching fails**: Falls back to manual selection (YouTube only)

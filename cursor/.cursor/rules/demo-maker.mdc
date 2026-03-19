@@ -106,17 +106,16 @@ After demos are generated, if `.case-study/` or `git-launch/` directories exist:
 
 If neither plugin is installed, offer the install links (see Setup section).
 
-### Step 10: Publish Demos to YouTube (optional)
+### Step 10: Publish Demos (optional)
 
-After demos are generated (and optionally integrated), offer to publish to YouTube:
+After demos are generated (and optionally integrated), offer to publish:
 
-1. Ask: "Would you like to publish these demos to YouTube? The script generates titles, descriptions, and tags — you upload in your own browser."
+1. Ask: "Would you like to publish these demos? Default: GitHub Release (instant, automated). Or: YouTube (manual upload with generated metadata)."
 2. If yes, read `$DM_ROOT/prompts/10-PUBLISH.md` and follow the workflow.
-3. No API keys, no browser automation, no passwords shared with AI.
-4. Run: `node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}"`
-5. The script opens YouTube Studio, copies metadata to clipboard for each video, and asks the user to paste back the YouTube URL.
-6. Display all YouTube URLs to the user.
-7. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
+3. **GitHub Release (default):** `node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --repo "owner/repo"` — fully automated, no manual steps.
+4. **YouTube (optional):** `node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --method youtube` — generates metadata package, user uploads manually.
+5. Display all video URLs to the user.
+6. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
 
 ## Rules
 
