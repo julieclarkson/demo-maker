@@ -14,10 +14,9 @@ interface Props {
   colorScheme: { text: string };
 }
 
-export const CaptionTrack: React.FC<Props> = ({ scenes, colorScheme }) => {
+export const CaptionTrack: React.FC<Props> = ({ scenes }) => {
   const frame = useCurrentFrame();
 
-  // Find current scene
   const currentScene = scenes.find(
     (s) => frame >= s.startFrame && frame < s.endFrame
   );
@@ -53,13 +52,15 @@ export const CaptionTrack: React.FC<Props> = ({ scenes, colorScheme }) => {
       <div
         style={{
           display: "inline-block",
-          background: "rgba(0, 0, 0, 0.75)",
+          background: "rgba(0, 0, 0, 0.85)",
           borderRadius: 8,
-          padding: "10px 20px",
-          fontFamily: "system-ui, sans-serif",
+          padding: "12px 24px",
+          fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace",
           fontSize: 20,
-          color: colorScheme.text,
-          lineHeight: 1.4,
+          color: "#FFFFFF",
+          lineHeight: 1.5,
+          letterSpacing: 0.3,
+          textShadow: "0 1px 2px rgba(0,0,0,0.5)",
         }}
       >
         {currentScene.narration}

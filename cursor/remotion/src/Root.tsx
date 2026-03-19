@@ -24,14 +24,9 @@ const defaultProps = {
   sceneDurations: {} as Record<string, number>,
 };
 
-/**
- * Dynamically calculate video duration from props.
- * When sceneDurations are provided (from actual narration audio measurement),
- * the total duration adjusts to fit the real audio — no more cutoffs.
- */
 const calcMetadata = ({ props }: { props: typeof defaultProps & { platform: string } }) => {
   return {
-    durationInFrames: calculateTotalFrames(props.platform, FPS, props.sceneDurations),
+    durationInFrames: calculateTotalFrames(props.platform, FPS, props.sceneDurations, props.storyboard),
     fps: FPS,
   };
 };

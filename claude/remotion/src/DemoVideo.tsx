@@ -16,6 +16,7 @@ import { WorkflowScene } from "./scenes/WorkflowScene";
 import { OutputScene } from "./scenes/OutputScene";
 import { CTAScene } from "./scenes/CTAScene";
 import { AIClipScene } from "./scenes/AIClipScene";
+import { StoryboardScene } from "./scenes/StoryboardScene";
 import { Watermark } from "./components/Watermark";
 import { CaptionTrack } from "./components/CaptionTrack";
 
@@ -33,17 +34,26 @@ interface AIClip {
   provider: "veo3" | "runway";
 }
 
-interface StoryboardScene {
-  id: number;
+interface StoryboardVisual {
+  type: string;
+  text: string;
+  subtext?: string;
+  style?: string;
+  animation?: string;
+}
+
+interface StoryboardSceneData {
+  id: string;
   segment: string;
   duration_ms: number;
   narration: string;
+  visual?: StoryboardVisual;
   priority: number;
 }
 
 interface DemoVideoProps {
   platform: string;
-  storyboard: { scenes: StoryboardScene[] } | null;
+  storyboard: { scenes: StoryboardSceneData[]; projectName?: string } | null;
   narrationDir: string | null;
   capturesDir: string | null;
   aiClips: AIClip[];
@@ -51,13 +61,10 @@ interface DemoVideoProps {
   animationStyle: "motion-graphics" | "cinematic" | "developer-authentic";
   availableNarration?: number[];
   isVertical?: boolean;
-  /** Per-scene durations in ms, keyed by scene number (1-indexed).
-   *  When provided, these override the hardcoded PLATFORM_CONFIGS durations.
-   *  This ensures each scene is exactly long enough for its narration audio. */
   sceneDurations?: Record<string, number>;
 }
 
-const SCENE_COMPONENTS: Record<string, React.FC<any>> = {
+const DEFAULT_SCENE_COMPONENTS: Record<string, React.FC<any>> = {
   hook: HookScene,
   problem: ProblemScene,
   turn: TurnScene,
@@ -66,9 +73,6 @@ const SCENE_COMPONENTS: Record<string, React.FC<any>> = {
   cta: CTAScene,
 };
 
-// Duration configs per platform (in seconds).
-// Each scene must be long enough for the narration to finish before the transition.
-// Rule of thumb: ~400ms per word + 2–3s padding for natural pacing and breathing room.
 const PLATFORM_CONFIGS: Record<string, { segment: string; duration: number }[]> = {
   full: [
     { segment: "hook", duration: 14 },
@@ -115,25 +119,33 @@ const PLATFORM_CONFIGS: Record<string, { segment: string; duration: number }[]> 
   ],
 };
 
-// How many frames the content fades out/in at each scene boundary.
-// 12 frames = 0.4s — smooth and visible, not too slow.
 const FADE_FRAMES = 12;
 
 /**
- * Calculate total frames for a platform. Scenes are sequential (no overlap).
- * When sceneDurations are provided (from actual audio measurement),
- * those override the hardcoded defaults.
+ * Calculate total frames for a platform.
+ * When a storyboard is provided, use its scene count and durations.
+ * sceneDurations (from actual audio) override everything.
  */
 export function calculateTotalFrames(
   platform: string,
   fps: number,
-  sceneDurations?: Record<string, number>
+  sceneDurations?: Record<string, number>,
+  storyboard?: { scenes: StoryboardSceneData[] } | null
 ): number {
+  if (storyboard?.scenes) {
+    return storyboard.scenes.reduce((sum, s, index) => {
+      const sceneNum = String(index + 1);
+      if (sceneDurations && sceneDurations[sceneNum]) {
+        return sum + Math.ceil((sceneDurations[sceneNum] / 1000) * fps);
+      }
+      return sum + Math.ceil((s.duration_ms / 1000) * fps);
+    }, 0);
+  }
+
   const config = PLATFORM_CONFIGS[platform] || PLATFORM_CONFIGS.full;
   return config.reduce((sum, s, index) => {
     const sceneNum = String(index + 1);
     if (sceneDurations && sceneDurations[sceneNum]) {
-      // Use actual audio duration (in ms) converted to frames
       return sum + Math.ceil((sceneDurations[sceneNum] / 1000) * fps);
     }
     return sum + s.duration * fps;
@@ -153,31 +165,64 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
 }) => {
   const { fps, durationInFrames } = useVideoConfig();
 
-  const config = PLATFORM_CONFIGS[platform] || PLATFORM_CONFIGS.full;
+  const useStoryboard = storyboard?.scenes && storyboard.scenes.length > 0;
 
-  // Build sequential timeline.
-  // When sceneDurations are provided (from actual audio measurement),
-  // use those instead of the hardcoded defaults.
   let offset = 0;
-  const timeline = config.map((scene, index) => {
-    const sceneNum = String(index + 1);
-    let durationFrames: number;
-    if (sceneDurations[sceneNum]) {
-      // Actual audio duration (ms) → frames
-      durationFrames = Math.ceil((sceneDurations[sceneNum] / 1000) * fps);
-    } else {
-      durationFrames = scene.duration * fps;
-    }
-    const startFrame = offset;
-    offset += durationFrames;
-    return {
-      id: index + 1,
-      segment: scene.segment,
-      durationFrames,
-      startFrame,
-      endFrame: startFrame + durationFrames,
-    };
-  });
+  let timeline: {
+    id: number;
+    sceneId: string;
+    segment: string;
+    narration?: string;
+    visual?: StoryboardVisual;
+    durationFrames: number;
+    startFrame: number;
+    endFrame: number;
+  }[];
+
+  if (useStoryboard) {
+    timeline = storyboard!.scenes.map((scene, index) => {
+      const sceneNum = String(index + 1);
+      let durationFrames: number;
+      if (sceneDurations[sceneNum]) {
+        durationFrames = Math.ceil((sceneDurations[sceneNum] / 1000) * fps);
+      } else {
+        durationFrames = Math.ceil((scene.duration_ms / 1000) * fps);
+      }
+      const startFrame = offset;
+      offset += durationFrames;
+      return {
+        id: index + 1,
+        sceneId: scene.id,
+        segment: scene.segment,
+        narration: scene.narration,
+        visual: scene.visual,
+        durationFrames,
+        startFrame,
+        endFrame: startFrame + durationFrames,
+      };
+    });
+  } else {
+    const config = PLATFORM_CONFIGS[platform] || PLATFORM_CONFIGS.full;
+    timeline = config.map((scene, index) => {
+      const sceneNum = String(index + 1);
+      let durationFrames: number;
+      if (sceneDurations[sceneNum]) {
+        durationFrames = Math.ceil((sceneDurations[sceneNum] / 1000) * fps);
+      } else {
+        durationFrames = scene.duration * fps;
+      }
+      const startFrame = offset;
+      offset += durationFrames;
+      return {
+        id: index + 1,
+        sceneId: `scene-${index + 1}`,
+        segment: scene.segment,
+        durationFrames,
+        startFrame,
+        endFrame: startFrame + durationFrames,
+      };
+    });
+  }
 
   const getAIClip = (sceneId: number) => aiClips.find((c) => c.sceneId === sceneId);
 
@@ -185,17 +230,11 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
     <AbsoluteFill style={{ backgroundColor: colorScheme.background }}>
       {timeline.map((scene, index) => {
         const aiClip = getAIClip(scene.id);
-        const SceneComponent = SCENE_COMPONENTS[scene.segment];
         const isFirst = index === 0;
         const isLast = index === timeline.length - 1;
 
         return (
           <Sequence key={scene.id} from={scene.startFrame} durationInFrames={scene.durationFrames}>
-            {/*
-              ContentFade wraps the scene content and fades it in/out.
-              The white background stays solid — only the content fades.
-              This creates a clean "dissolve through white" effect.
-            */}
             <ContentFade
               durationFrames={scene.durationFrames}
               fadeIn={!isFirst}
@@ -204,13 +243,22 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
             >
               {aiClip ? (
                 <AIClipScene videoPath={aiClip.videoPath} provider={aiClip.provider} />
-              ) : SceneComponent ? (
-                <SceneComponent
+              ) : scene.visual?.type === "text_card" ? (
+                <StoryboardScene
                   colorScheme={colorScheme}
-                  animationStyle={animationStyle}
+                  visual={scene.visual}
+                  segment={scene.segment}
+                  sceneId={scene.sceneId}
                   durationFrames={scene.durationFrames}
                   isVertical={isVertical}
                 />
+              ) : DEFAULT_SCENE_COMPONENTS[scene.segment] ? (
+                React.createElement(DEFAULT_SCENE_COMPONENTS[scene.segment], {
+                  colorScheme,
+                  animationStyle,
+                  durationFrames: scene.durationFrames,
+                  isVertical,
+                })
               ) : (
                 <AbsoluteFill />
               )}
@@ -229,15 +277,6 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
   );
 };
 
-/**
- * Fades the scene CONTENT in and out, leaving the white background visible.
- *
- * At end of scene A: content opacity goes 1 → 0 (white bg shows through)
- * At start of scene B: content opacity goes 0 → 1 (new content appears)
- *
- * This creates a clean dissolve-through-white without any overlapping sequences,
- * z-order issues, or ghosting artifacts.
- */
 const ContentFade: React.FC<{
   durationFrames: number;
   fadeIn: boolean;
@@ -249,7 +288,6 @@ const ContentFade: React.FC<{
 
   let opacity = 1;
 
-  // Fade in: content appears from transparent
   if (fadeIn) {
     const fadeInOpacity = interpolate(frame, [0, fadeFrames], [0, 1], {
       extrapolateRight: "clamp",
@@ -259,7 +297,6 @@ const ContentFade: React.FC<{
     opacity = Math.min(opacity, fadeInOpacity);
   }
 
-  // Fade out: content disappears to transparent (white bg shows)
   if (fadeOut) {
     const fadeOutOpacity = interpolate(
       frame,
