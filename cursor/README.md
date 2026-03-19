@@ -1,138 +1,169 @@
-# Demo Maker — Cursor Plugin
+# Demo Maker
 
-Your product is built. Now demo it properly.
+**Auto-generate narrated MP4 product demos from your codebase.**
 
-Demo Maker is an AI agent plugin that reads your finished codebase and generates a narrated MP4 product demo — automatically. It analyzes your project, writes a script, captures visuals, narrates with ElevenLabs, and renders video with Remotion.
+Point it at your project, review the script, hit render. You get 7 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, TikTok, and GIF — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
 
-**No cloud. No video editing. No slop.**
+![Demo Maker in action](https://github.com/julieclarkson/demo-maker/releases/download/demo-20260316-142115/demo-github.gif)
 
-## Setup
+Free Cursor & Claude plugin. No SaaS, no accounts, no uploads.
 
-### 1. Clone and initialize
+---
 
-```bash
-git clone https://github.com/julieclarkson/demo-maker.git
-cd your-project
-bash path/to/demo-maker/production/cursor/dm-init.sh .
-```
+## What It Does
 
-Or manually: copy `production/cursor/` into your project and copy `.cursor/rules/demo-maker.mdc` to your project's `.cursor/rules/`.
+Demo Maker reads your finished codebase, understands the user flow, and produces a full video pipeline:
 
-### 2. Install dependencies
+1. **Analyzes** your project — frameworks, routes, components, user flows
+2. **Scripts** a narrated walkthrough — editable markdown, not a black box
+3. **Captures** your UI with Playwright (or terminal for CLI tools)
+4. **Narrates** with ElevenLabs TTS — voice-locked so every scene and platform sounds like the same speaker
+5. **Renders** with Remotion — React-powered video composition with transitions, typography, and gradient dissolves
+6. **Cuts** platform-specific versions — each optimized for its destination
+7. **Publishes** to GitHub Release and embeds URLs in your case study pages and launch kit (optional)
 
-Demo Maker requires Node.js and FFmpeg. The Remotion video engine needs a one-time npm install:
-
-```bash
-cd your-project/.demo-maker-plugin/remotion
-npm install
-```
-
-### 3. Set up API keys
-
-Tell Cursor: "demo maker activate"
-
-This creates a `.demo-maker/` directory. Then set up your keys:
-
-```bash
-cp .demo-maker/.env.example .demo-maker/.env
-```
-
-Open `.demo-maker/.env` and paste your keys:
+### Output
 
 ```
-# Required for voice narration
-ELEVENLABS_API_KEY=your-key-here
-
-# Optional fallback voice
-OPENAI_API_KEY=your-key-here
-
-# Optional — for AI cinematic video clips
-GOOGLE_API_KEY=your-key-here
-RUNWAY_API_KEY=your-key-here
+OUTPUT/demo-{timestamp}/
+├── demo-full.mp4            60s full walkthrough
+├── demo-github.mp4          60s for README
+├── demo-twitter.mp4         30s hook for Twitter/X
+├── demo-producthunt.mp4     45s for Product Hunt gallery
+├── demo-instagram.mp4       vertical (1080×1920) for Reels
+├── demo-tiktok.mp4          vertical (1080×1920) for TikTok
+├── demo-gif.mp4             short loop for inline previews
+├── demo-github.gif          GIF for README embedding
+├── captions/                SRT files per platform
+├── thumbnails/              auto-generated per platform
+└── video-urls.json          published URLs (after Step 9)
 ```
 
-Where to get keys:
+---
 
-- **ElevenLabs** — https://elevenlabs.io/ → Profile → API Key (free tier available)
-- **OpenAI** — https://platform.openai.com/api-keys
-- **Google Veo 3** — https://aistudio.google.com/apikey (for AI video clips)
-- **Runway Gen-3** — https://app.runwayml.com/ → Settings → API Keys (for AI video clips)
+## Tech Stack
 
-The `.env` file is gitignored. Keys are only used for outbound API calls at runtime.
+| Tool | Role |
+|------|------|
+| [Playwright](https://playwright.dev) | UI screen capture (browser automation) |
+| [ElevenLabs](https://elevenlabs.io) | AI voice narration with Voice Design |
+| [Remotion](https://remotion.dev) | React-powered video rendering and composition |
+| [FFmpeg](https://ffmpeg.org) | Video encoding, GIF conversion, thumbnails |
+| Node.js | Scripting and orchestration |
 
-### 4. Generate a demo
-
-Tell Cursor: "make a demo"
+---
 
 ## Prerequisites
 
-| Dependency | Required | How to install |
-|---|---|---|
-| Node.js >= 18 | Yes | https://nodejs.org or `brew install node` |
-| FFmpeg | Yes | `brew install ffmpeg` (Mac) or https://ffmpeg.org |
-| Remotion npm packages | Yes | `cd remotion && npm install` (once) |
-| ElevenLabs API key | Recommended | Free tier at https://elevenlabs.io |
-| Google API key (Veo 3) | Optional | For AI cinematic clips |
-| Runway API key | Optional | For AI cinematic clips |
+- **Node.js** 18+
+- **FFmpeg** installed (`brew install ffmpeg` on macOS)
+- **ElevenLabs API key** (for narration — or skip for caption-only mode)
+- **Playwright** (`npx playwright install chromium`)
+- **GitHub CLI** (`gh`) for publishing demos (optional)
 
-## Commands
+---
 
-Tell Cursor any of these:
+## Install
 
-- "make a demo" / "generate demo" / "create demo video"
-- "demo maker activate" / "init demo maker"
-- "run demo maker"
+### Cursor
 
-## What Gets Generated
-
-Each demo run creates a unique timestamped folder:
-
-```
-OUTPUT/
-└── demo-20260310-143022/
-    ├── demo-full.mp4           # ~60s full narrated demo
-    ├── demo-twitter.mp4         # 30s cut-down
-    ├── demo-producthunt.mp4     # 45s cut-down
-    ├── demo-github.gif          # GIF for README
-    ├── captions/
-    ├── thumbnails/
-    └── script.md
+```bash
+cd your-project
+git clone https://github.com/julieclarkson/demo-maker.git .demo-maker-plugin
 ```
 
-## Visual Tiers
+Copy the Cursor rule into your project:
 
-Choose during strategy — from free to cinematic:
+```bash
+mkdir -p .cursor/rules
+cp .demo-maker-plugin/cursor/.cursor/rules/demo-maker.mdc .cursor/rules/
+```
 
-| Tier | Cost | What you get |
-|---|---|---|
-| HTML + CSS | Free | Clean motion graphics, code-driven |
-| Remotion | Free | React-based video, Lottie/Rive characters, Three.js 3D |
-| Remotion + AI clips | Paid | Remotion base + 1-2 AI cinematic clips (Veo 3 / Runway) |
-| Full AI video | Paid | All scenes AI-generated for a commercial feel |
+Then tell Cursor: **"make a demo"**
 
-## Voice Options
+### Claude Desktop (Cowork)
 
-Demo Maker generates audio previews so you can listen and pick:
+```bash
+cd your-project
+git clone https://github.com/julieclarkson/demo-maker.git .demo-maker-plugin
+```
 
-- **Dev Casual** — conversational, like showing a friend what you built
-- **Tech Explainer** — clear, measured, like a senior engineer
-- **Storyteller** — warm, narrative, like a founder at a meetup
-- **Founder** — confident, direct, like a YC demo day pitch
-- **Custom** — describe any voice and Demo Maker designs it
+Copy the Claude skill into your project's `.claude/` directory, then use the `/demo` command.
 
-## Security
+### Bundle (all three plugins at once)
 
-- All data stays local — API calls only go to your configured providers
-- API keys in `.demo-maker/.env` (gitignored), not readable by the AI agent
-- Playwright only connects to localhost
-- No telemetry, no analytics, no cloud uploads
+- **Cursor**: [launchpad-cursor](https://github.com/julieclarkson/launchpad-cursor)
+- **Claude**: [launchpad-claude](https://github.com/julieclarkson/launchpad-claude)
 
-## Also Available for Claude Desktop
+---
 
-This plugin is also available as a [Claude Desktop Cowork plugin](https://github.com/julieclarkson/demo-maker). Drop it into `.claude/plugins/demo-maker/` and run `/demo-maker:activate`.
+## Usage
+
+After installing, say **"make a demo"** in Cursor or run `/demo` in Claude. The plugin walks you through:
+
+```
+Step 1  Analyze codebase
+Step 2  Ask creative direction questions
+Step 3  Generate narration script (you review and edit)
+Step 4  Plan scenes and storyboard
+Step 5  Capture screens via Playwright
+Step 6  Generate voice narration via ElevenLabs
+Step 7  Render video via Remotion + FFmpeg
+Step 8  Generate platform-specific cutdowns
+Step 9  Publish & integrate (optional)
+```
+
+**Step 9** uploads all videos to a GitHub Release and embeds the URLs into your Case Study Maker pages and Git Launcher posts automatically. One prompt, fully automated.
+
+---
+
+## Companion Plugins
+
+Demo Maker is part of a three-plugin ecosystem. They work independently but are best together:
+
+| Plugin | What it does | Install |
+|--------|-------------|---------|
+| [Case Study Maker](https://github.com/julieclarkson/case-study-maker) | Captures build reflections → generates marketing pages, portfolio pages, pitch decks | Install first |
+| **Demo Maker** | Generates narrated video demos from your codebase | You are here |
+| [Git Launcher](https://github.com/julieclarkson/git-launcher) | Generates README, Twitter thread, Product Hunt listing, Reddit/HN posts, and more | Install after demos |
+
+**Recommended order:**
+1. **Case Study Maker** — capture reflections as you build
+2. **Demo Maker** — generate demos (reads your reflections for better scripts)
+3. **Case Study Maker** `/generate` — create marketing pages (auto-embeds demo videos)
+4. **Git Launcher** — create launch kit (auto-embeds platform-specific demos)
+
+---
+
+## How It Works
+
+### Voice Locking
+
+ElevenLabs Voice Design generates a random voice per API call. Demo Maker runs it once, saves the `generated_voice_id` to `voice-lock.json`, and reuses it for every scene and platform. Delete the file to get a new voice.
+
+### Per-Platform Pipeline
+
+Each platform gets its own script, audio, and render — not a single video cropped to fit. The 30s Twitter cut has a different script arc than the 60s full demo. Vertical Instagram/TikTok cuts have different framing.
+
+### Script-First
+
+Every narration script lives as editable markdown in `.demo-maker/scripts/`. You review and edit before anything renders. No black box.
+
+### Local-First
+
+Nothing leaves your machine unless you choose to publish. Your ElevenLabs API key, your Playwright browser, your FFmpeg. No cloud processing.
+
+---
+
+## Project Structure
+
+```
+cursor/       Cursor plugin (rules, prompts, scripts, Remotion project)
+claude/       Claude plugin (skills, commands, prompts, scripts, Remotion project)
+```
+
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
-
-Built by [Julie Clarkson](https://superflyweb.com)
+MIT — free and open source.
