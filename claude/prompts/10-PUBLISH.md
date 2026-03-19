@@ -1,22 +1,18 @@
 # Step 10 — Publish Demos
 
-Upload rendered demo videos to YouTube and return embeddable URLs.
+Upload rendered demo videos to YouTube and save embeddable URLs.
 
 ## Prerequisites
 
 - Demo videos rendered (Step 8 complete — `OUTPUT/demo-{timestamp}/` exists)
 - A YouTube account (any Google account with a YouTube channel)
-- No API keys or developer setup needed
+- No API keys, no developer setup, no browser automation
 
-### First-time setup
+## How it works
 
-If the user hasn't signed into YouTube for Demo Maker yet, run:
+The script generates optimized titles, descriptions, and tags for each demo video, copies them to your clipboard one at a time, and opens YouTube Studio in your own browser. You upload each video manually (drag and drop), paste the metadata the script provides, and paste the YouTube URL back into the terminal. The script saves all URLs to `youtube-urls.json`.
 
-```bash
-node "$DM_ROOT/scripts/youtube-setup.js"
-```
-
-This opens a browser window where the user signs into their Google account. Their login is saved for future uploads. Takes about 30 seconds.
+Your password and browser session never leave your machine. The AI never sees your login.
 
 ## Workflow
 
@@ -30,9 +26,7 @@ ls -td OUTPUT/demo-* | head -1
 
 Confirm with the user which run to publish if multiple exist.
 
-### 2. Upload to YouTube
-
-Run the uploader:
+### 2. Run the publisher
 
 ```bash
 node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --privacy unlisted
@@ -44,34 +38,37 @@ Arguments:
 - `--privacy`: `unlisted` (default), `public`, or `private`
 
 The script will:
-- Open a visible browser window (reuses saved YouTube login)
-- If not signed in, pause and wait for the user to sign in
-- Upload each demo video with optimized metadata:
-  - **Title**: "{Project} - Full Product Demo", "{Project} - 30s Demo", etc.
-  - **Description**: Auto-generated from narration script + repo link
-  - **Tags**: Project name, language, framework, "demo", "product demo"
-  - **Visibility**: Unlisted by default
-- Save all YouTube URLs to `OUTPUT/demo-{timestamp}/youtube-urls.json`
+- Open YouTube Studio in the user's own browser
+- For each video:
+  - Show the file path to upload
+  - Copy the title to clipboard — user pastes in YouTube
+  - Copy the description to clipboard — user pastes in YouTube
+  - Copy the tags to clipboard — user pastes in YouTube
+  - User sets visibility and clicks Publish
+  - User pastes the YouTube URL back into the terminal
+- Save all URLs to `OUTPUT/demo-{timestamp}/youtube-urls.json`
+- Save metadata reference to `OUTPUT/demo-{timestamp}/youtube-metadata.txt`
 
-### 3. Display results
+### 3. Resuming interrupted uploads
 
-After upload completes, present the URLs to the user:
+If the user quits partway through, re-running the same command will detect previously uploaded videos and offer to skip them. Progress is saved after each video.
+
+### 4. Display results
+
+After all uploads, present the URLs to the user:
 
 ```
-Published to YouTube
-
-  Full Demo:      https://youtube.com/watch?v=...
-  GitHub Demo:    https://youtube.com/watch?v=...
-  Twitter (30s):  https://youtube.com/watch?v=...
-  Product Hunt:   https://youtube.com/watch?v=...
-  Instagram:      https://youtube.com/watch?v=...
-  TikTok:         https://youtube.com/watch?v=...
-  GIF Preview:    https://youtube.com/watch?v=...
+Done! 7 uploaded, 0 skipped
 
   URLs saved to: OUTPUT/demo-{timestamp}/youtube-urls.json
+
+  YouTube URLs:
+    demo-full: https://youtube.com/watch?v=...
+    demo-github: https://youtube.com/watch?v=...
+    ...
 ```
 
-### 4. Companion plugin integration
+### 5. Companion plugin integration
 
 After publishing, remind the user:
 
@@ -83,7 +80,6 @@ After publishing, remind the user:
 
 ## Error handling
 
-- **Not signed in**: The browser will pause and wait for sign-in. If the user needs to set up fresh, run `node "$DM_ROOT/scripts/youtube-setup.js"`
-- **Upload stalls**: YouTube processes videos before allowing publish. Large files may take several minutes. The script waits automatically.
-- **Browser closes unexpectedly**: Re-run the command. Videos already uploaded won't be duplicated (check YouTube Studio to confirm).
-- **Network error**: Re-run the command. The browser session persists across runs.
+- **Not signed into YouTube**: Open youtube.com in your browser and sign in first, or run `node "$DM_ROOT/scripts/youtube-setup.js"`
+- **Wrong URL pasted**: Re-run the command — it will skip already-uploaded videos and let you redo the ones that failed
+- **Quit mid-upload**: Re-run the command — it resumes where you left off
