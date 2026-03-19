@@ -100,18 +100,27 @@ Add a new event to `.case-study/events.json`:
 }
 ```
 
-### Step 2: Embed Demos in Case Study Pages
+### Step 2: Copy Video to Output Directory
 
-Check if Case Study Maker has generated output pages in `OUTPUTS/`. For each page that exists, embed the full demo video using the published URL from `video-urls.json`.
+Copy the demo video into the same directory as the generated HTML pages so it can be referenced with a relative path:
 
-Read `video-urls.json` → get `videos["demo-full"].url`.
+```bash
+mkdir -p OUTPUTS/videos
+cp OUTPUT/{run-id}/demo-full.mp4 OUTPUTS/videos/demo-full.mp4
+```
+
+This ensures the video works when the pages are deployed — no external URL dependencies.
+
+### Step 3: Embed Demos in Case Study Pages
+
+For each generated page that exists in `OUTPUTS/`, embed the full demo video using a **relative path**.
 
 **Marketing page** — insert in the hero section:
 ```html
 <section class="demo-video" style="text-align:center; padding:3rem 1rem;">
   <h2>See It in Action</h2>
   <video controls playsinline preload="metadata" style="width:100%; max-width:800px; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-    <source src="{videos.demo-full.url}" type="video/mp4">
+    <source src="videos/demo-full.mp4" type="video/mp4">
     Your browser does not support video playback.
   </video>
 </section>
@@ -121,18 +130,15 @@ Read `video-urls.json` → get `videos["demo-full"].url`.
 ```html
 <div style="margin:1.5rem auto; max-width:800px; border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.15);">
   <video controls playsinline preload="metadata" style="width:100%; display:block;">
-    <source src="{videos.demo-full.url}" type="video/mp4">
+    <source src="videos/demo-full.mp4" type="video/mp4">
     Your browser does not support video playback.
   </video>
 </div>
 ```
 
-**Important:** Also update the Content-Security-Policy `<meta>` tag to allow video from GitHub:
-```
-media-src 'self' https://github.com https://objects.githubusercontent.com;
-```
+The CSP `media-src` only needs `'self'` since the video is served from the same origin.
 
-### Step 3: Update Case Study README
+### Step 4: Update Case Study README
 
 If `.case-study/README.md` exists, add:
 
