@@ -169,26 +169,29 @@ Do NOT ask the user about animation style. Motion graphics is the only implement
 
 ---
 
-## Question 3: Scale & Dynamism
+## Dynamism (Auto-Set)
 
-Ask:
+Do NOT ask the user about dynamism. The spring configs, interpolation ranges, and fade
+durations are hardcoded in each scene component. This setting has no effect on rendering.
+Set automatically:
 
-```
-How dynamic should the visuals be?
-
-1. Minimal — mostly static with subtle fade-ins and text animations
-2. Moderate — UI elements animate in, smooth transitions between sections
-3. High energy — fast cuts, particle effects, camera zooms, constant motion
-4. Cinematic pacing — slow dramatic reveals, hold on key moments, breathing room
-
-Your choice: [1-4]
+```json
+{
+  "strategy.dynamism": "moderate"
+}
 ```
 
-Store in context: `strategy.dynamism`
+<!-- FUTURE DEV: Make dynamism configurable by parameterizing spring damping, mass,
+     fade duration (FADE_FRAMES), and interpolation ranges in scene components.
+     When implemented, expose as a strategy question with options:
+     - minimal (high damping, long fades, slow springs)
+     - moderate (current defaults)
+     - high-energy (low damping, short fades, fast springs)
+     - cinematic (variable — slow reveals with quick cuts) -->
 
 ---
 
-## Question 4: Demo Focus
+## Question 3: Demo Focus
 
 Ask:
 
@@ -207,7 +210,7 @@ Store in context: `strategy.demoFocus`
 
 ---
 
-## Question 5: Case Study Integration (Conditional)
+## Question 4: Case Study Integration (Conditional)
 
 Only ask if `.case-study/` exists and contains a build narrative:
 
