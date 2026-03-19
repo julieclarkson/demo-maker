@@ -1,33 +1,42 @@
 /**
  * youtube-uploader.js — Prepare YouTube uploads and collect URLs.
  *
- * Generates optimized metadata (titles, descriptions, tags) for each
- * demo video, opens YouTube Studio in your own browser for manual upload,
- * then prompts you to paste the URLs back.
+ * Generates a complete upload package for each demo video:
+ *   - Thumbnail (auto-generated from first frame, replaceable)
+ *   - Title, description, tags
+ *   - Audience, language, visibility settings
+ *   - Subtitles text (from narration scripts)
+ *   - End screen and cards guidance
+ *   - Copyright declaration
+ *
+ * Opens YouTube Studio in your own browser. You upload manually.
+ * After uploading, paste your channel URL and the script matches
+ * the videos automatically.
  *
  * No API keys. No browser automation. No passwords shared with AI.
- * You upload in your own browser — this script handles the tedious
- * metadata and saves the URLs for companion plugins.
  *
  * Usage:
- *   node youtube-uploader.js <demo-run-dir> [--project <name>] [--privacy unlisted|public|private]
+ *   node youtube-uploader.js <demo-run-dir> [--project <name>] [--privacy public|unlisted|private]
  *
- * Outputs: <demo-run-dir>/youtube-urls.json
+ * Outputs:
+ *   <demo-run-dir>/youtube-upload/      — per-video folders with metadata + thumbnails
+ *   <demo-run-dir>/youtube-urls.json    — collected YouTube URLs
  */
 
-const { readFileSync, writeFileSync, existsSync, statSync, mkdirSync } = require('fs');
+const { readFileSync, writeFileSync, existsSync, statSync, mkdirSync, symlinkSync, readdirSync } = require('fs');
 const { join, basename, resolve } = require('path');
 const { createInterface } = require('readline');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
+const https = require('https');
 
 const VIDEO_CONFIGS = {
-  'demo-full.mp4':        { suffix: 'Full Product Demo',    key: 'demo-full',        order: 1 },
-  'demo-github.mp4':      { suffix: 'GitHub Demo',          key: 'demo-github',      order: 2 },
-  'demo-twitter.mp4':     { suffix: '30s Demo',             key: 'demo-twitter',     order: 3 },
-  'demo-producthunt.mp4': { suffix: 'Product Hunt Demo',    key: 'demo-producthunt', order: 4 },
-  'demo-instagram.mp4':   { suffix: 'Demo (Vertical)',      key: 'demo-instagram',   order: 5 },
-  'demo-tiktok.mp4':      { suffix: 'Demo (Short)',         key: 'demo-tiktok',      order: 6 },
-  'demo-gif.mp4':         { suffix: 'Quick Preview',        key: 'demo-gif',         order: 7 },
+  'demo-full.mp4':        { suffix: 'Full Product Demo',    key: 'demo-full',        scriptFile: 'script-full.md',        order: 1 },
+  'demo-github.mp4':      { suffix: 'GitHub Demo',          key: 'demo-github',      scriptFile: 'script-github.md',      order: 2 },
+  'demo-twitter.mp4':     { suffix: '30s Demo',             key: 'demo-twitter',     scriptFile: 'script-twitter.md',     order: 3 },
+  'demo-producthunt.mp4': { suffix: 'Product Hunt Demo',    key: 'demo-producthunt', scriptFile: 'script-producthunt.md', order: 4 },
+  'demo-instagram.mp4':   { suffix: 'Demo (Vertical)',      key: 'demo-instagram',   scriptFile: 'script-instagram.md',   order: 5 },
+  'demo-tiktok.mp4':      { suffix: 'Demo (Short)',         key: 'demo-tiktok',      scriptFile: 'script-tiktok.md',      order: 6 },
+  'demo-gif.mp4':         { suffix: 'Quick Preview',        key: 'demo-gif',         scriptFile: 'script-gif.md',         order: 7 },
 };
 
 function ask(prompt) {
@@ -37,15 +46,46 @@ function ask(prompt) {
   });
 }
 
+function askMultiline(prompt) {
+  return new Promise(resolve => {
+    const r = createInterface({ input: process.stdin, output: process.stdout });
+    console.log(prompt);
+    const lines = [];
+    r.on('line', line => {
+      if (line.trim() === '') {
+        r.close();
+        resolve(lines);
+      } else {
+        lines.push(line.trim());
+      }
+    });
+  });
+}
+
 function openUrl(url) {
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'start' : 'xdg-open';
   exec(`${cmd} "${url}"`);
 }
 
+function openFolder(path) {
+  const cmd = process.platform === 'darwin' ? 'open' :
+    process.platform === 'win32' ? 'explorer' : 'xdg-open';
+  exec(`${cmd} "${path}"`);
+}
+
+function copyToClipboard(text) {
+  try {
+    execSync('pbcopy', { input: text });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { privacy: 'unlisted', project: null, runDir: null };
+  const opts = { privacy: 'public', project: null, runDir: null };
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--project' && args[i + 1]) {
@@ -80,8 +120,8 @@ function loadProjectInfo(runDir) {
     );
     if (scriptFile) {
       const content = readFileSync(join(scriptsUsed, scriptFile), 'utf-8');
-      const lines = content.split('\n').filter(l => l.trim()).slice(0, 5);
-      description = lines.join(' ').slice(0, 4900);
+      const narration = extractNarration(content);
+      description = narration.slice(0, 4900);
     }
   }
 
@@ -99,21 +139,77 @@ function loadProjectInfo(runDir) {
   return { description, tags };
 }
 
-function copyToClipboard(text) {
-  const { execSync } = require('child_process');
-  try {
-    execSync('pbcopy', { input: text });
-    return true;
-  } catch {
-    return false;
+function extractNarration(scriptContent) {
+  const lines = scriptContent.split('\n');
+  const narration = [];
+  for (const line of lines) {
+    const match = line.match(/^>\s*(.+)/);
+    if (match) narration.push(match[1].trim());
   }
+  return narration.join(' ');
+}
+
+function generateThumbnail(videoPath, outputPath) {
+  try {
+    execSync(
+      `ffmpeg -y -i "${videoPath}" -ss 00:00:02 -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`,
+      { timeout: 15000 }
+    );
+    return existsSync(outputPath);
+  } catch {
+    try {
+      execSync(
+        `ffmpeg -y -i "${videoPath}" -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`,
+        { timeout: 15000 }
+      );
+      return existsSync(outputPath);
+    } catch {
+      return false;
+    }
+  }
+}
+
+function generateSubtitlesText(scriptPath) {
+  if (!existsSync(scriptPath)) return null;
+  const content = readFileSync(scriptPath, 'utf-8');
+  const lines = content.split('\n');
+  const narration = [];
+
+  for (const line of lines) {
+    const match = line.match(/^>\s*(.+)/);
+    if (match) narration.push(match[1].trim());
+  }
+
+  if (narration.length === 0) return null;
+  return narration.join('\n\n');
+}
+
+function fetchOEmbed(url) {
+  return new Promise((resolve, reject) => {
+    const reqUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    https.get(reqUrl, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch { reject(new Error('Invalid response')); }
+      });
+    }).on('error', reject);
+  });
+}
+
+function extractVideoId(url) {
+  const match = url.match(/watch\?v=([a-zA-Z0-9_-]+)|youtu\.be\/([a-zA-Z0-9_-]+)|shorts\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1] || match[2] || match[3];
+  if (url.match(/^[a-zA-Z0-9_-]{11}$/)) return url;
+  return null;
 }
 
 async function main() {
   const opts = parseArgs();
 
   if (!opts.runDir) {
-    console.error('Usage: node youtube-uploader.js <demo-run-dir> [--project <name>] [--privacy unlisted|public|private]');
+    console.error('Usage: node youtube-uploader.js <demo-run-dir> [--project <name>] [--privacy public|unlisted|private]');
     process.exit(1);
   }
 
@@ -126,11 +222,12 @@ async function main() {
   const projectRoot = findProjectRoot();
   const projectName = opts.project || basename(projectRoot);
   const { description: baseDescription, tags } = loadProjectInfo(runDir);
+  const scriptsUsed = join(runDir, 'scripts-used');
 
   const repoUrl = `https://github.com/julieclarkson/${projectName.toLowerCase().replace(/\s+/g, '-')}`;
   const description = baseDescription
-    ? `${baseDescription}\n\n${repoUrl}`
-    : `Product demo for ${projectName}.\n\n${repoUrl}`;
+    ? `${baseDescription}\n\n${repoUrl}\n\nMade with Demo Maker — https://github.com/julieclarkson/demo-maker`
+    : `Product demo for ${projectName}.\n\n${repoUrl}\n\nMade with Demo Maker — https://github.com/julieclarkson/demo-maker`;
 
   const tagString = tags.slice(0, 20).join(', ');
 
@@ -143,6 +240,7 @@ async function main() {
       title: `${projectName} - ${config.suffix}`,
       key: config.key,
       order: config.order,
+      scriptFile: config.scriptFile,
     }))
     .sort((a, b) => a.order - b.order);
 
@@ -151,172 +249,244 @@ async function main() {
     process.exit(1);
   }
 
-  // Check for existing youtube-urls.json (partial upload resume)
-  const outputPath = join(runDir, 'youtube-urls.json');
-  let existingResults = null;
-  if (existsSync(outputPath)) {
-    try {
-      existingResults = JSON.parse(readFileSync(outputPath, 'utf-8'));
-      const existingCount = Object.keys(existingResults.videos || {}).length;
-      if (existingCount > 0) {
-        console.log(`\n  Found ${existingCount} previously uploaded videos in youtube-urls.json`);
-        const resume = await ask('  Skip already-uploaded videos? (y/n): ');
-        if (resume.toLowerCase() !== 'y') existingResults = null;
-      }
-    } catch { existingResults = null; }
-  }
+  // ── Phase 1: Generate upload package ──────────────────────────
 
   console.log('');
   console.log('='.repeat(54));
   console.log('  YouTube Publisher — ' + projectName);
   console.log('='.repeat(54));
   console.log('');
-  console.log(`  Videos to upload: ${videosToUpload.length}`);
-  console.log(`  Privacy:          ${opts.privacy}`);
-  console.log(`  Video folder:     ${runDir}`);
+  console.log('  Phase 1: Preparing upload package...');
   console.log('');
 
-  // Write metadata file for reference
-  const metadataPath = join(runDir, 'youtube-metadata.txt');
-  let metadataContent = `YouTube Upload Metadata — ${projectName}\n`;
-  metadataContent += `${'='.repeat(50)}\n\n`;
-  metadataContent += `Description (same for all videos):\n${description}\n\n`;
-  metadataContent += `Tags: ${tagString}\n`;
-  metadataContent += `Privacy: ${opts.privacy}\n\n`;
-  metadataContent += `${'─'.repeat(50)}\n\n`;
+  const uploadDir = join(runDir, 'youtube-upload');
+  if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
+
+  let masterMetadata = '';
+  masterMetadata += `YOUTUBE UPLOAD GUIDE — ${projectName}\n`;
+  masterMetadata += `${'='.repeat(54)}\n\n`;
+  masterMetadata += `Upload each numbered folder below. Every folder contains:\n`;
+  masterMetadata += `  - The video file (drag into YouTube)\n`;
+  masterMetadata += `  - thumbnail.jpg (upload as custom thumbnail)\n`;
+  masterMetadata += `  - metadata.txt (copy-paste each field)\n`;
+  masterMetadata += `  - subtitles.txt (paste into subtitles if available)\n\n`;
+  masterMetadata += `${'─'.repeat(54)}\n\n`;
 
   for (const video of videosToUpload) {
-    metadataContent += `File: ${video.file}\n`;
-    metadataContent += `Title: ${video.title}\n`;
-    metadataContent += `Size: ${(video.size / 1_000_000).toFixed(1)} MB\n\n`;
+    const num = String(video.order).padStart(2, '0');
+    const folderName = `${num}-${video.key}`;
+    const videoDir = join(uploadDir, folderName);
+    if (!existsSync(videoDir)) mkdirSync(videoDir, { recursive: true });
+
+    // Symlink video file
+    const linkPath = join(videoDir, video.file);
+    if (!existsSync(linkPath)) {
+      try { symlinkSync(video.path, linkPath); } catch {}
+    }
+
+    // Generate thumbnail
+    const thumbPath = join(videoDir, 'thumbnail.jpg');
+    const thumbOk = generateThumbnail(video.path, thumbPath);
+    console.log(`  ${folderName}/`);
+    console.log(`    Video:     ${video.file} (${(video.size / 1_000_000).toFixed(1)} MB)`);
+    console.log(`    Thumbnail: ${thumbOk ? 'generated' : 'FAILED — upload manually'}`);
+
+    // Generate subtitles text
+    const scriptPath = join(scriptsUsed, video.scriptFile);
+    const subtitles = generateSubtitlesText(scriptPath);
+    if (subtitles) {
+      writeFileSync(join(videoDir, 'subtitles.txt'), subtitles);
+      console.log(`    Subtitles: generated from narration script`);
+    }
+
+    // Per-video metadata file
+    let meta = '';
+    meta += `YOUTUBE METADATA — ${video.title}\n`;
+    meta += `${'─'.repeat(54)}\n\n`;
+    meta += `TITLE:\n${video.title}\n\n`;
+    meta += `DESCRIPTION:\n${description}\n\n`;
+    meta += `THUMBNAIL:\n→ Upload thumbnail.jpg from this folder\n→ To use your own: replace thumbnail.jpg before uploading\n\n`;
+    meta += `AUDIENCE:\n→ Select: "No, it's not made for kids"\n\n`;
+    meta += `LANGUAGE:\n→ English\n\n`;
+    meta += `SUBTITLES:\n→ If subtitles.txt exists in this folder, add it:\n  YouTube Studio → Subtitles → Add → Upload file → "Without timing"\n  → Select subtitles.txt\n\n`;
+    meta += `TAGS:\n${tagString}\n\n`;
+    meta += `END SCREEN:\n→ After publishing, go to video → Editor → End screen\n→ Add "Best for viewer" video element\n→ Add "Subscribe" button\n→ Position in last 20 seconds\n\n`;
+    meta += `CARDS:\n→ After publishing, go to video → Editor → Cards\n→ Add card linking to: ${repoUrl}\n→ Place at the midpoint of the video\n\n`;
+    meta += `COPYRIGHT:\n→ None required — this is original content\n→ If prompted: "This is my original content"\n\n`;
+    meta += `VISIBILITY:\n→ ${opts.privacy.charAt(0).toUpperCase() + opts.privacy.slice(1)}\n`;
+
+    writeFileSync(join(videoDir, 'metadata.txt'), meta);
+
+    // Add to master file
+    masterMetadata += `${folderName}/\n`;
+    masterMetadata += `${'─'.repeat(54)}\n`;
+    masterMetadata += `Title:       ${video.title}\n`;
+    masterMetadata += `File:        ${video.file} (${(video.size / 1_000_000).toFixed(1)} MB)\n`;
+    masterMetadata += `Thumbnail:   thumbnail.jpg ${thumbOk ? '(auto-generated — replace with your own if desired)' : '(FAILED — create manually)'}\n`;
+    masterMetadata += `Audience:    Not made for kids\n`;
+    masterMetadata += `Language:    English\n`;
+    masterMetadata += `Subtitles:   ${subtitles ? 'subtitles.txt (from narration script)' : 'None'}\n`;
+    masterMetadata += `Tags:        ${tagString}\n`;
+    masterMetadata += `End Screen:  Add "Best for viewer" + Subscribe in last 20s\n`;
+    masterMetadata += `Cards:       Link to ${repoUrl}\n`;
+    masterMetadata += `Copyright:   Original content\n`;
+    masterMetadata += `Visibility:  ${opts.privacy.charAt(0).toUpperCase() + opts.privacy.slice(1)}\n`;
+    masterMetadata += `\nDescription:\n${description}\n`;
+    masterMetadata += `\n${'─'.repeat(54)}\n\n`;
+
+    console.log('');
   }
 
-  writeFileSync(metadataPath, metadataContent);
+  writeFileSync(join(uploadDir, 'UPLOAD-GUIDE.txt'), masterMetadata);
 
-  // Open YouTube Studio
-  console.log('  Opening YouTube Studio in your browser...');
+  console.log(`  Upload package ready: ${uploadDir}`);
   console.log('');
+
+  // ── Phase 2: Upload ───────────────────────────────────────────
+
+  console.log('='.repeat(54));
+  console.log('  Phase 2: Upload to YouTube');
+  console.log('='.repeat(54));
+  console.log('');
+
+  openFolder(uploadDir);
   openUrl('https://studio.youtube.com');
 
-  console.log('  ┌───────────────────────────────────────────────┐');
-  console.log('  │  Upload each video in YOUR browser.           │');
-  console.log('  │  For each one, this script will:              │');
-  console.log('  │    - Show you the file path                   │');
-  console.log('  │    - Copy the title to your clipboard         │');
-  console.log('  │    - Copy the description to your clipboard   │');
-  console.log('  │    - Tell you the tags to paste               │');
-  console.log('  │    - Ask you to paste the YouTube URL back    │');
-  console.log('  └───────────────────────────────────────────────┘');
+  console.log('  Opened the upload folder and YouTube Studio.');
+  console.log('');
+  console.log('  For each numbered folder:');
+  console.log('    1. In YouTube Studio: click CREATE → Upload videos');
+  console.log('    2. Drag the .mp4 file from the folder');
+  console.log('    3. Open metadata.txt — copy-paste each field');
+  console.log('    4. Upload thumbnail.jpg as custom thumbnail');
+  console.log('    5. Set audience, language, visibility');
+  console.log('    6. Click PUBLISH');
+  console.log('    7. Repeat for the next folder');
   console.log('');
 
+  await ask('  Press ENTER when all videos are uploaded...');
+
+  // ── Phase 3: Collect URLs ─────────────────────────────────────
+
+  console.log('');
+  console.log('='.repeat(54));
+  console.log('  Phase 3: Collect YouTube URLs');
+  console.log('='.repeat(54));
+  console.log('');
+  console.log('  In YouTube Studio, go to Content (left sidebar).');
+  console.log('  Your new videos should be at the top.');
+  console.log('');
+  console.log('  For each video: click the three dots (options) →');
+  console.log('  "Get shareable link" → paste below.');
+  console.log('');
+  console.log('  Paste all YouTube URLs below, one per line.');
+  console.log('  Press ENTER on a blank line when done:');
+  console.log('');
+
+  const urls = await askMultiline('');
+
+  // Match URLs to videos by fetching titles via oEmbed
   const results = {
     publishedAt: new Date().toISOString(),
     project: projectName,
     privacy: opts.privacy,
-    videos: existingResults?.videos || {},
+    videos: {},
   };
 
-  let uploaded = 0;
-  let skipped = 0;
+  const unmatched = [];
 
-  for (let i = 0; i < videosToUpload.length; i++) {
-    const video = videosToUpload[i];
-
-    // Skip if already uploaded
-    if (existingResults?.videos?.[video.key]) {
-      console.log(`  [${i + 1}/${videosToUpload.length}] ${video.file} — already uploaded, skipping`);
-      skipped++;
+  for (const url of urls) {
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      console.log(`  Could not parse: ${url}`);
+      unmatched.push(url);
       continue;
     }
 
-    console.log('─'.repeat(54));
-    console.log(`  Video ${i + 1} of ${videosToUpload.length}: ${video.file}`);
-    console.log(`  Size: ${(video.size / 1_000_000).toFixed(1)} MB`);
-    console.log('─'.repeat(54));
-    console.log('');
-    console.log(`  File to upload:`);
-    console.log(`    ${video.path}`);
-    console.log('');
+    const fullUrl = `https://youtube.com/watch?v=${videoId}`;
 
-    // Copy title
-    console.log(`  Title: ${video.title}`);
-    copyToClipboard(video.title);
-    console.log('    (copied to clipboard)');
-    await ask('  Paste the title in YouTube, then press ENTER...');
+    // Try oEmbed to get the title
+    let matchedKey = null;
+    try {
+      const oembed = await fetchOEmbed(fullUrl);
+      const title = oembed.title || '';
 
-    // Copy description
-    copyToClipboard(description);
-    console.log('');
-    console.log('  Description copied to clipboard.');
-    await ask('  Paste the description in YouTube, then press ENTER...');
+      for (const video of videosToUpload) {
+        if (title === video.title || title.includes(video.title) || video.title.includes(title)) {
+          matchedKey = video.key;
+          break;
+        }
+      }
 
-    // Tags
-    copyToClipboard(tagString);
-    console.log('');
-    console.log('  Tags copied to clipboard.');
-    console.log('  In YouTube: click "Show more" → paste into Tags field.');
-    await ask('  Press ENTER when tags are pasted...');
+      if (!matchedKey) {
+        // Fuzzy match: check if any suffix appears
+        for (const video of videosToUpload) {
+          const suffix = VIDEO_CONFIGS[video.file].suffix;
+          if (title.includes(suffix)) {
+            matchedKey = video.key;
+            break;
+          }
+        }
+      }
 
-    // Privacy reminder
-    console.log('');
-    console.log(`  Set visibility to: ${opts.privacy.toUpperCase()}`);
-    console.log('  Click through: Next → Next → Next → set visibility → PUBLISH');
-    console.log('');
-
-    // Get URL back
-    const url = await ask('  Paste the YouTube URL here (or "skip" to skip): ');
-
-    if (url.toLowerCase() === 'skip' || !url) {
-      console.log('  Skipped.\n');
-      continue;
+      if (matchedKey) {
+        console.log(`  Matched "${title}" → ${matchedKey}`);
+      } else {
+        console.log(`  Could not auto-match "${title}"`);
+      }
+    } catch {
+      console.log(`  Could not fetch title for ${fullUrl}`);
     }
 
-    // Extract video ID
-    let videoId = '';
-    const match = url.match(/watch\?v=([a-zA-Z0-9_-]+)|youtu\.be\/([a-zA-Z0-9_-]+)|shorts\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      videoId = match[1] || match[2] || match[3];
-    } else if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
-      videoId = url;
+    if (!matchedKey) {
+      // Manual match
+      console.log('');
+      console.log('  Which video is this? Enter the number:');
+      const remaining = videosToUpload.filter(v => !results.videos[v.key]);
+      for (let i = 0; i < remaining.length; i++) {
+        console.log(`    ${i + 1}. ${remaining[i].title}`);
+      }
+      const choice = await ask('  Number: ');
+      const idx = parseInt(choice, 10) - 1;
+      if (idx >= 0 && idx < remaining.length) {
+        matchedKey = remaining[idx].key;
+      }
     }
 
-    if (videoId) {
-      results.videos[video.key] = {
+    if (matchedKey) {
+      results.videos[matchedKey] = {
         youtubeId: videoId,
         url: `https://youtube.com/watch?v=${videoId}`,
         embedUrl: `https://www.youtube.com/embed/${videoId}`,
-        title: video.title,
+        title: videosToUpload.find(v => v.key === matchedKey)?.title || '',
       };
-      uploaded++;
-      console.log(`  Saved: https://youtube.com/watch?v=${videoId}\n`);
     } else {
-      results.videos[video.key] = {
-        youtubeId: '',
-        url: url,
-        embedUrl: '',
-        title: video.title,
-      };
-      uploaded++;
-      console.log(`  Saved URL (could not extract video ID): ${url}\n`);
+      unmatched.push(url);
     }
-
-    // Save after each video in case user quits mid-way
-    writeFileSync(outputPath, JSON.stringify(results, null, 2));
   }
 
-  // Final save
+  // Save results
+  const outputPath = join(runDir, 'youtube-urls.json');
   writeFileSync(outputPath, JSON.stringify(results, null, 2));
 
+  const matchedCount = Object.keys(results.videos).length;
+
   console.log('');
   console.log('='.repeat(54));
-  console.log(`  Done! ${uploaded} uploaded, ${skipped} skipped`);
+  console.log(`  Done! ${matchedCount}/${videosToUpload.length} videos matched`);
   console.log('='.repeat(54));
-  console.log('');
-  console.log(`  URLs saved to: ${outputPath}`);
-  console.log(`  Metadata saved to: ${metadataPath}`);
   console.log('');
 
-  if (Object.keys(results.videos).length > 0) {
+  if (unmatched.length > 0) {
+    console.log(`  ${unmatched.length} URL(s) could not be matched.`);
+    console.log('  You can edit youtube-urls.json manually to add them.');
+    console.log('');
+  }
+
+  console.log(`  URLs saved to: ${outputPath}`);
+  console.log('');
+
+  if (matchedCount > 0) {
     console.log('  YouTube URLs:');
     for (const [key, data] of Object.entries(results.videos)) {
       console.log(`    ${key}: ${data.url}`);
