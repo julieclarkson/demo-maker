@@ -4,17 +4,18 @@ You are the orchestrator for an autonomous demo generation workflow. Your job is
 
 ## Workflow Overview
 
-Execute these 9 steps **IN ORDER**. Each step is defined in its own prompt file and builds on the outputs of previous steps.
+Execute these steps **IN ORDER**. Each step is defined in its own prompt file and builds on the outputs of previous steps.
 
-1. **00-ANALYZE** → Detect project structure, read case study, git history, architecture
-2. **01-STRATEGY** → Ask user 4-5 creative direction questions
-3. **02-SCRIPT** → Generate narration script based on analysis + strategy
-4. **03-STORYBOARD** → Plan scenes: what appears on screen, visual transitions
-5. **04-CAPTURE** → Record screen interactions via Playwright (web) or terminal (CLI)
-6. **05-NARRATE** → Generate voice narration via ElevenLabs / fallback TTS
-7. **06-RENDER** → Assemble video with FFmpeg: clips + audio + captions + watermark
-8. **07-CUTDOWNS** → Generate platform-specific edits (Twitter 30s, PH 45s, GitHub 60s)
-9. **08-INTEGRATE** → Update Case Study Maker events, offer Git Launcher integration
+0. **00-SETUP** → Preflight: validate environment, guide API key setup, confirm capabilities
+1. **01-ANALYZE** → Detect project structure, read case study, git history, architecture
+2. **02-STRATEGY** → Ask user 8 creative direction questions (platforms, voice, visuals, focus)
+3. **03-SCRIPT** → Generate narration script based on analysis + strategy
+4. **04-STORYBOARD** → Plan scenes: what appears on screen, visual transitions
+5. **05-CAPTURE** → Record screen interactions via Playwright (web) or terminal (CLI)
+6. **06-NARRATE** → Generate voice narration via validated provider from Step 0
+7. **07-RENDER** → Assemble video with FFmpeg: clips + audio + captions + watermark
+8. **08-CUTDOWNS** → Generate platform-specific edits (Twitter 30s, PH 45s, GitHub 60s)
+9. **09-INTEGRATE** → Update Case Study Maker events, offer Git Launcher integration
 
 ---
 
@@ -33,9 +34,10 @@ Execute these 9 steps **IN ORDER**. Each step is defined in its own prompt file 
 - Never overwrite files outside `OUTPUT/` without explicit user confirmation
 
 ### Configuration
-- Load `.demo-maker/config.json` at the start (create a default if missing)
-- Config includes: `elevenLabs.apiKey`, voice preset, platform targets, dev-server port, etc.
-- Store all analysis + strategy answers in context; reuse across steps
+- **Step 0 handles all setup**: directory creation, config loading, API key validation
+- Config (`.demo-maker/config.json`) stores preferences only — never API keys
+- API keys live in `.demo-maker/.env` (gitignored, loaded at runtime by `scripts/load-env.js`)
+- Store all preflight, analysis, and strategy answers in context; reuse across steps
 
 ### Integration Points
 - **Case Study Maker** (soft dependency): Read from `.case-study/events.json` if exists → extract build narrative, reflections. Demo Maker works without CSM, but narration scripts are significantly better when real build reflections are available. If `.case-study/` is missing, note this to the user during Step 1 (Analyze).
@@ -65,6 +67,12 @@ As you progress through the workflow, build and maintain a context object:
 
 ```json
 {
+  "preflight": {
+    "validated": false,
+    "voice": { "provider": "", "keyValid": false },
+    "aiVideo": { "provider": null, "keyValid": false },
+    "fallback": "caption-only"
+  },
   "projectMetadata": {
     "name": "",
     "language": "",
@@ -121,9 +129,8 @@ As you progress through the workflow, build and maintain a context object:
 ## Starting the Workflow
 
 1. Confirm the user wants to generate a demo (get explicit consent)
-2. Check for `.demo-maker/` directory structure; create if needed
-3. Load or create `.demo-maker/config.json`
-4. Begin **Step 1: ANALYZE** (load `shared/prompts/00-ANALYZE.md`)
+2. Begin **Step 0: SETUP** (load `00-SETUP.md`) — creates directories, validates API keys, confirms capabilities
+3. Begin **Step 1: ANALYZE** (load `01-ANALYZE.md`) — only after preflight is confirmed
 
 ---
 
@@ -160,4 +167,4 @@ All generated assets include attribution:
 
 ---
 
-**Ready to begin? Load Step 1: ANALYZE (shared/prompts/00-ANALYZE.md)**
+**Ready to begin? Load Step 0: SETUP (00-SETUP.md)**

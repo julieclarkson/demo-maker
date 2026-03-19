@@ -35,11 +35,16 @@ Store selected platforms in context: `strategy.platforms`
 
 This question has two parts: preset preview, then optional custom design.
 
+**Prerequisite:** Step 0 (Preflight) already validated the voice provider. Check `preflight.voice.provider` to determine what's available:
+- `elevenlabs` → full voice preview + narration + voice design
+- `openai` → preset selection by description only (no audio preview)
+- `caption-only` → skip this question entirely; inform user captions will be used
+
 ### Part A: Voice Preset Preview
 
-If the user has an ElevenLabs API key configured, generate audio previews so they can listen. Run `voice-preview.js` with a sample sentence from the project analysis (or a fallback like "Here's what your product does, and why it matters.").
+**If `preflight.voice.provider` is `elevenlabs`:**
 
-Ask:
+Generate audio previews using the validated key. Run `voice-preview.js` with a sample sentence from the project analysis (or a fallback like "Here's what your product does, and why it matters.").
 
 ```
 Pick a narration voice. I've generated short audio samples for each — listen and choose the one that fits your product.
@@ -59,11 +64,28 @@ Pick a narration voice. I've generated short audio samples for each — listen a
 Your choice: [1-4]
 ```
 
-If no ElevenLabs key is available, show descriptions only (no audio previews).
+**If `preflight.voice.provider` is `openai`:**
+
+Show descriptions only (OpenAI TTS doesn't support preview generation with the same fidelity):
+
+```
+Pick a narration voice (OpenAI TTS — descriptions only):
+
+1. Dev Casual — conversational, slightly fast (voice: Onyx)
+2. Tech Explainer — clear, measured, professional (voice: Echo)
+3. Storyteller — warm, narrative, slower pace (voice: Fable)
+4. Founder — confident, direct, energetic (voice: Alloy)
+
+Your choice: [1-4]
+```
+
+**If `preflight.voice.provider` is `caption-only`:**
+
+Skip this question. Inform the user: "Voice was set to caption-only in preflight. Subtitles will be burned into the video. You can re-run preflight to change this."
 
 ### Part B: Custom Voice Design (Optional)
 
-After the user picks a preset, offer:
+Only offer if provider is `elevenlabs`:
 
 ```
 Want to customize the voice further? You can describe what you're after and I'll generate a custom voice.
@@ -97,13 +119,11 @@ How should the visuals be generated? Each tier adds more polish (and cost).
 Your choice: [1-4]
 ```
 
-If user picks 3 or 4, check which AI video API keys are configured in `.demo-maker/.env`:
-- `GOOGLE_API_KEY` → Veo 3 available
-- `RUNWAY_API_KEY` → Runway Gen-3 available
+If user picks 3 or 4, check `preflight.aiVideo.provider` from Step 0:
+- If an AI video key was validated in preflight, proceed to provider selection below
+- If no AI video key was configured in preflight, inform the user: "AI video wasn't set up in preflight. Falling back to Remotion (tier 2). You can re-run preflight to add a key."
 
-If neither key is configured, inform the user and fall back to tier 2.
-
-If both keys are available, ask:
+If a validated AI video key is available, or both providers are configured, ask:
 
 ```
 Which AI video provider should generate the cinematic clips?

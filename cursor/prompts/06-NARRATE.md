@@ -6,26 +6,18 @@ Generate voice narration for each scene using ElevenLabs API (primary) or fallba
 
 ## Configuration & API Setup
 
-### 1. Load Configuration
+### 1. Load Validated Provider from Preflight
 
-Read `.demo-maker/config.json`:
+The voice provider and API key were validated in Step 0 (Preflight). Read from context:
 
-```json
-{
-  "elevenLabs": {
-    "apiKey": "sk_...",
-    "voiceId": "21m00Tcm4TlvDq8ikWAM",
-    "stability": 0.5,
-    "similarity": 0.75
-  },
-  "openai": {
-    "apiKey": "sk-..."
-  },
-  "voice": {
-    "preset": "dev-casual"
-  }
-}
-```
+- `preflight.voice.provider` → which service to use (`elevenlabs`, `openai`, or `caption-only`)
+- `preflight.voice.keyValid` → already confirmed working; no need to re-validate
+- `strategy.voice.preset` → chosen in Step 2 (Strategy)
+- `strategy.voice.voiceId` → resolved voice ID from preset or custom design
+
+API keys are loaded at runtime by `scripts/load-env.js` from `.demo-maker/.env`. The narration scripts access them through environment variables — never from config.json.
+
+If `preflight.voice.provider` is `caption-only`, skip directly to Step 5 (Caption-Only Mode).
 
 ### 2. Determine Voice Preset
 
@@ -86,23 +78,13 @@ Create `.demo-maker/narration/scene-{id}.txt`:
 Ever spent 20 minutes hunting for a typo in your config file?
 ```
 
-### Step 2: Check API Keys
+### Step 2: Select Provider from Preflight
 
-Check for available TTS service:
-
-```bash
-if [ -n "$ELEVENLABS_API_KEY" ]; then
-  echo "Using ElevenLabs"
-elif [ -n "$OPENAI_API_KEY" ]; then
-  echo "Using OpenAI TTS"
-else
-  echo "No TTS API available; falling back to caption-only"
-fi
-```
+The provider was already validated. Use `preflight.voice.provider` directly — no runtime key-checking needed. If the provider unexpectedly fails at this point (e.g., key was rotated between steps), fall through the fallback chain: elevenlabs → openai → caption-only.
 
 ### Step 3: Generate with ElevenLabs (Primary)
 
-If `elevenLabs.apiKey` is available:
+If `preflight.voice.provider` is `elevenlabs`:
 
 ```bash
 node scripts/narration-generator.js \
