@@ -55,11 +55,12 @@ OUTPUT/demo-{timestamp}/
 
 ## Prerequisites
 
-- **Node.js** 18+
-- **FFmpeg** installed (`brew install ffmpeg` on macOS)
-- **ElevenLabs API key** (for narration — or skip for caption-only mode)
-- **Playwright** (`npx playwright install chromium`)
-- **GitHub CLI** (`gh`) for publishing demos (optional)
+- **Node.js 18+**
+- **FFmpeg** — `brew install ffmpeg` (macOS) or [ffmpeg.org](https://ffmpeg.org) (other platforms)
+- **ElevenLabs API key** — for narration (or skip for caption-only mode)
+- **GitHub CLI** (`gh`) — for publishing demos to GitHub Releases (optional)
+
+Playwright Chromium is installed automatically during setup.
 
 ---
 
@@ -111,21 +112,44 @@ Clone the bundle repo into your project the same way — inside your project fol
 
 ## Usage
 
-After installing, say **"make a demo"** in Cursor or run `/demo` in Claude. The plugin walks you through:
+After installing, say **"make a demo"** in Cursor or run `/demo` in Claude. The plugin walks you through a 9-step workflow:
 
-```
-Step 1  Analyze codebase
-Step 2  Ask creative direction questions
-Step 3  Generate narration script (you review and edit)
-Step 4  Plan scenes and storyboard
-Step 5  Capture screens via Playwright
-Step 6  Generate voice narration via ElevenLabs
-Step 7  Render video via Remotion + FFmpeg
-Step 8  Generate platform-specific cutdowns
-Step 9  Publish & integrate (optional)
-```
+| Step | What happens |
+|------|-------------|
+| 1. Analyze | Scans your codebase — frameworks, routes, components |
+| 2. Strategy | Asks creative direction questions (tone, audience, focus) |
+| 3. Script | Generates narration script — you review and edit |
+| 4. Storyboard | Plans scenes, transitions, timing |
+| 5. Capture | Records your UI via Playwright |
+| 6. Narrate | Generates voice via ElevenLabs (voice-locked for consistency) |
+| 7. Render | Assembles video via Remotion + FFmpeg |
+| 8. Cutdowns | Generates all 7 platform-specific versions |
+| 9. Publish | Uploads to GitHub Release, embeds in companion plugin outputs (optional) |
 
-**Step 9** uploads all videos to a GitHub Release and embeds the URLs into your Case Study Maker pages and Git Launcher posts automatically. One prompt, fully automated.
+**Step 9** is optional. If you say yes, it uploads all 7 videos to a GitHub Release and automatically embeds the URLs into your Case Study Maker pages and Git Launcher posts.
+
+---
+
+## Sandbox and Permissions
+
+Demo Maker requires **several operations outside the standard sandbox**. Here's what needs approval and why:
+
+| Operation | Sandbox? | Why it needs approval |
+|-----------|----------|----------------------|
+| Codebase analysis, script generation | Standard sandbox | Reads project files only |
+| `npm install` (Remotion dependencies) | Standard sandbox | npm registry is allowed |
+| `npx playwright install chromium` | **Needs full network** | Downloads Chromium browser binary from Google CDN |
+| Screen capture (Playwright) | **May need approval** | Headless browser launch can be blocked by sandbox |
+| ElevenLabs narration (Step 6) | **Needs full network** | Calls ElevenLabs API (`api.elevenlabs.io`) with your API key |
+| Remotion render + FFmpeg (Step 7-8) | **May need approval** | Spawns headless Chrome for rendering; FFmpeg must be installed system-wide |
+| GitHub Release publish (Step 9) | **Needs full network** | Uses `gh` CLI to upload videos to GitHub |
+
+**Your responsibility:** Cursor and Claude may request expanded permissions when running these steps. Review each permission prompt carefully and approve only what you understand. You can configure scope settings in your IDE to control what the AI agent is allowed to do.
+
+**Tips:**
+- Run `npm install` and `npx playwright install chromium` directly in your terminal to avoid sandbox issues
+- FFmpeg must be installed system-wide (`brew install ffmpeg`) — this cannot be done through the AI agent
+- Your ElevenLabs API key is stored locally in `.demo-maker/config.json` and never sent anywhere except the ElevenLabs API
 
 ---
 
@@ -137,11 +161,12 @@ Demo Maker is part of a three-plugin ecosystem. They work independently but are 
 |--------|-------------|---------|
 | [Case Study Maker](https://github.com/julieclarkson/case-study-maker) | Captures build reflections → generates marketing pages, portfolio pages, pitch decks | Install first |
 | **Demo Maker** | Generates narrated video demos from your codebase | You are here |
-| [Git Launcher](https://github.com/julieclarkson/git-launcher) | Generates README, Twitter thread, Product Hunt listing, Reddit/HN posts, and more | Install after demos |
+| [Git Launcher](https://github.com/julieclarkson/git-launcher) | Generates README, Twitter thread, Product Hunt listing, Reddit/HN posts | Install after demos |
 
 **Recommended order:**
+
 1. **Case Study Maker** — capture reflections as you build
-2. **Demo Maker** — generate demos (reads your reflections for better scripts)
+2. **Demo Maker** — generate demos (reads your reflections for better narration)
 3. **Case Study Maker** `/generate` — create marketing pages (auto-embeds demo videos)
 4. **Git Launcher** — create launch kit (auto-embeds platform-specific demos)
 
@@ -155,7 +180,7 @@ ElevenLabs Voice Design generates a random voice per API call. Demo Maker runs i
 
 ### Per-Platform Pipeline
 
-Each platform gets its own script, audio, and render — not a single video cropped to fit. The 30s Twitter cut has a different script arc than the 60s full demo. Vertical Instagram/TikTok cuts have different framing.
+Each platform gets its own script, audio, and render — not a single video cropped to fit. The 30s Twitter cut has a different narrative arc than the 60s full demo. Vertical Instagram/TikTok cuts have different framing.
 
 ### Script-First
 
