@@ -5,7 +5,9 @@
 Point it at your project, review the script, hit render. You get 7 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, TikTok, and GIF — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
 
 <p align="center">
-  <img src="media/demo.gif" alt="Demo Maker in action" width="720">
+  <video src="media/demo.mp4" controls width="720">
+    <a href="media/demo.mp4">Watch the demo (60s, with narration)</a>
+  </video>
 </p>
 
 Free Cursor & Claude plugin. No SaaS, no accounts, no uploads.
@@ -67,30 +69,47 @@ OUTPUT/demo-{timestamp}/
 
 ## Install
 
+> **Important:** Clone this repo *inside* the project you want to make a demo for. Demo Maker needs to read your project's codebase to generate the video.
+
 ### Cursor
 
 ```bash
-cd your-project
+# Go to the root of YOUR project (the one you want to demo)
+cd ~/my-awesome-app
+
+# Clone Demo Maker into your project as a hidden folder
 git clone https://github.com/julieclarkson/demo-maker.git .demo-maker-plugin
+
+# Copy the Cursor rule so the plugin activates
 mkdir -p .cursor/rules
 cp .demo-maker-plugin/cursor/.cursor/rules/demo-maker.mdc .cursor/rules/
 ```
 
-Then tell Cursor: **"make a demo"**
+Now open your project in Cursor and say: **"make a demo"**
 
 ### Claude Desktop (Cowork)
 
 ```bash
-cd your-project
+# Go to the root of YOUR project
+cd ~/my-awesome-app
+
+# Clone Demo Maker into your project
 git clone https://github.com/julieclarkson/demo-maker.git .demo-maker-plugin
+
+# Copy the Claude skill into your project
+cp -r .demo-maker-plugin/claude/skills .claude/skills
 ```
 
-Copy the Claude skill into your project's `.claude/` directory, then use the `/demo` command.
+Then use the `/demo` command in Claude.
 
 ### Bundle (all three plugins at once)
 
+If you want Demo Maker + Case Study Maker + Git Launcher together:
+
 - **Cursor**: [launchpad-cursor](https://github.com/julieclarkson/launchpad-cursor)
 - **Claude**: [launchpad-claude](https://github.com/julieclarkson/launchpad-claude)
+
+Clone the bundle repo into your project the same way — inside your project folder.
 
 ---
 
