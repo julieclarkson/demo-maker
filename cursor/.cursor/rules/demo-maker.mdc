@@ -81,41 +81,28 @@ Execute the 9-step workflow by reading prompts in order:
 6. `$DM_ROOT/prompts/06-NARRATE.md` — Generate voice via ElevenLabs
 7. `$DM_ROOT/prompts/07-RENDER.md` — Assemble video via FFmpeg
 8. `$DM_ROOT/prompts/08-CUTDOWNS.md` — Platform-specific versions
-9. `$DM_ROOT/prompts/09-INTEGRATE.md` — Push to ecosystem
+9. `$DM_ROOT/prompts/09-INTEGRATE.md` — Publish & Integrate (optional)
 
 ## Integration
 
 - If `.case-study/` exists: use build reflections in narration script
 - If `git-launch/` exists: embed demo in README and launch posts
 
-### Post-Generation Integration (runs after Step 8: Cutdowns)
+### Step 9: Publish & Integrate (optional)
 
-After demos are generated, if `.case-study/` or `git-launch/` directories exist:
+After Step 8 completes, read and follow `$DM_ROOT/prompts/09-INTEGRATE.md`. This single optional step:
 
-1. Ask: "Demo generation complete. Would you like to integrate these demos into your case study pages and launch kit? [yes/no]"
-2. If yes, read `$DM_ROOT/config/demo-integration-map.json` for the platform-to-output mapping and follow `$DM_ROOT/prompts/09-INTEGRATE.md` Part E for the full workflow.
-3. The mapping places each demo into its matching output:
-   - `demo-full.mp4` → Case Study Maker marketing + portfolio pages
-   - `demo-github.mp4` → Git Launcher README
-   - `demo-twitter.mp4` → Git Launcher Twitter thread
-   - `demo-producthunt.mp4` → Git Launcher Product Hunt listing
-   - `demo-instagram.mp4` → Git Launcher Instagram post
-   - `demo-tiktok.mp4` → Git Launcher TikTok post
-   - `demo-gif.mp4` → Git Launcher README inline preview + Reddit/HN posts
-4. After integration, ask which repo(s) to push updated files to.
+1. Asks: "Would you like to publish these demos and integrate them into your case study pages and launch kit?"
+2. If yes, runs the full automated flow:
+   - **Publish**: Uploads all 7 videos to a GitHub Release via `gh` CLI (no manual steps)
+   - **Embed in CSM**: If `.case-study/` exists, embeds published URLs into marketing + portfolio pages, updates CSP headers
+   - **Embed in GL**: If `git-launch/LAUNCH_KIT/` exists, replaces local paths with published URLs in all launch kit posts
+   - **Save URLs**: Writes `video-urls.json` so future CSM/GL runs auto-embed
+3. If no, skips — local files remain in `OUTPUT/`.
 
-If neither plugin is installed, offer the install links (see Setup section).
+If neither companion plugin is installed, offers install links after publishing.
 
-### Step 10: Publish Demos (optional)
-
-After demos are generated (and optionally integrated), offer to publish:
-
-1. Ask: "Would you like to publish these demos? Default: GitHub Release (instant, automated). Or: YouTube (manual upload with generated metadata)."
-2. If yes, read `$DM_ROOT/prompts/10-PUBLISH.md` and follow the workflow.
-3. **GitHub Release (default):** `node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --repo "owner/repo"` — fully automated, no manual steps.
-4. **YouTube (optional):** `node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --method youtube` — generates metadata package, user uploads manually.
-5. Display all video URLs to the user.
-6. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
+YouTube upload is available as an alternative via `--method youtube` if the user specifically requests it.
 
 ## Rules
 

@@ -345,6 +345,6 @@ Ready to proceed to ecosystem integration (Step 9)?
 
 ## Proceed to Next Step
 
-Load and execute: `shared/prompts/09-INTEGRATE.md`
+Load and execute: `$DM_ROOT/prompts/09-INTEGRATE.md`
 
-The integration script will offer to push demo assets into Case Study Maker and Git Launcher ecosystems.
+Step 9 offers to publish all videos to a GitHub Release and automatically embed the URLs into Case Study Maker pages and Git Launcher launch kit posts.
