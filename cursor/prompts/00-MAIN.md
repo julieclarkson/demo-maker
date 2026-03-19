@@ -8,7 +8,7 @@ Execute these steps **IN ORDER**. Each step is defined in its own prompt file an
 
 0. **00-SETUP** → Preflight: validate environment, guide API key setup, confirm capabilities
 1. **01-ANALYZE** → Detect project structure, read case study, git history, architecture
-2. **02-STRATEGY** → Ask user 8 creative direction questions (platforms, voice, visuals, focus)
+2. **02-STRATEGY** → Ask user 7 creative direction questions (platforms, voice, color, animation, dynamism, focus, case study)
 3. **03-SCRIPT** → Generate narration script based on analysis + strategy
 4. **04-STORYBOARD** → Plan scenes: what appears on screen, visual transitions
 5. **05-CAPTURE** → Record screen interactions via Playwright (web) or terminal (CLI)
