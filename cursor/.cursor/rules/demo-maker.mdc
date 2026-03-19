@@ -112,10 +112,11 @@ After demos are generated (and optionally integrated), offer to publish to YouTu
 
 1. Ask: "Would you like to publish these demos to YouTube? This uploads all videos with optimized titles, descriptions, and tags, and returns embeddable URLs."
 2. If yes, read `$DM_ROOT/prompts/10-PUBLISH.md` and follow the workflow.
-3. Requires `YOUTUBE_CLIENT_ID` and `YOUTUBE_CLIENT_SECRET` in `.demo-maker/.env`.
-4. Run: `node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}"`
-5. Display all YouTube URLs to the user.
-6. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
+3. No API keys needed — the script opens a browser and uses the user's YouTube login.
+4. If the user hasn't signed in yet: `node "$DM_ROOT/scripts/youtube-setup.js"` (one-time, 30 seconds).
+5. Run: `node "$DM_ROOT/scripts/youtube-uploader.js" OUTPUT/demo-{timestamp} --project "{ProjectName}"`
+6. Display all YouTube URLs to the user.
+7. Remind: companion plugins (Case Study Maker, Git Launcher) will auto-embed these URLs when generating pages.
 
 ## Rules
 

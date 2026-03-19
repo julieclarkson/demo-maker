@@ -1,5 +1,9 @@
 /**
- * youtube-uploader.js — Upload demo videos to YouTube with optimized metadata.
+ * youtube-uploader.js — Upload demo videos to YouTube via browser automation.
+ *
+ * No API keys or Google Cloud setup required. Uses Playwright to automate
+ * the standard YouTube Studio upload interface. User just needs to be
+ * logged into their YouTube account.
  *
  * Usage:
  *   node youtube-uploader.js <demo-run-dir> [--project <name>] [--privacy unlisted|public|private]
@@ -7,27 +11,18 @@
  * Example:
  *   node shared/scripts/youtube-uploader.js OUTPUT/demo-20260316-142115 --project "Demo Maker"
  *
- * Required env vars in .demo-maker/.env:
- *   YOUTUBE_CLIENT_ID=...
- *   YOUTUBE_CLIENT_SECRET=...
- *
- * On first run, opens a browser for OAuth consent. Stores refresh token
- * in .demo-maker/youtube-token.json for subsequent runs.
+ * First run: opens a browser for you to sign into YouTube.
+ * Subsequent runs: reuses your saved login session.
  *
  * Outputs: <demo-run-dir>/youtube-urls.json
  */
 
-const { google } = require('googleapis');
-const { readFileSync, writeFileSync, existsSync, createReadStream, statSync } = require('fs');
+const { chromium } = require('playwright');
+const { readFileSync, writeFileSync, existsSync, statSync, mkdirSync } = require('fs');
 const { join, basename, resolve } = require('path');
-const http = require('http');
-const { URL } = require('url');
-const loadEnv = require('./load-env');
 
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
-const TOKEN_PATH_REL = '.demo-maker/youtube-token.json';
-const REDIRECT_PORT = 8976;
-const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/oauth2callback`;
+const YOUTUBE_UPLOAD_URL = 'https://www.youtube.com/upload';
+const YOUTUBE_STUDIO_URL = 'https://studio.youtube.com';
 
 const VIDEO_CONFIGS = {
   'demo-full.mp4':        { suffix: 'Full Product Demo',    key: 'demo-full' },
@@ -95,129 +90,226 @@ function loadProjectInfo(runDir) {
   return { description, tags };
 }
 
-async function getAuthClient(projectRoot) {
-  const env = loadEnv(projectRoot);
-  const clientId = env.YOUTUBE_CLIENT_ID;
-  const clientSecret = env.YOUTUBE_CLIENT_SECRET;
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
-  if (!clientId || !clientSecret) {
-    console.error('\n✗ Missing YouTube credentials in .demo-maker/.env');
-    console.error('  Add these lines:');
-    console.error('    YOUTUBE_CLIENT_ID=your-client-id');
-    console.error('    YOUTUBE_CLIENT_SECRET=your-client-secret');
-    console.error('\n  Get credentials: https://console.cloud.google.com/apis/credentials');
-    console.error('  Enable: YouTube Data API v3');
-    process.exit(1);
+async function waitForLogin(page) {
+  console.log('');
+  console.log('  ┌─────────────────────────────────────────────┐');
+  console.log('  │  Sign into your YouTube account in the       │');
+  console.log('  │  browser window that just opened.            │');
+  console.log('  │                                              │');
+  console.log('  │  Once you\'re signed in, the upload will      │');
+  console.log('  │  start automatically.                        │');
+  console.log('  └─────────────────────────────────────────────┘');
+  console.log('');
+
+  const maxWait = 300_000; // 5 min
+  const start = Date.now();
+
+  while (Date.now() - start < maxWait) {
+    try {
+      await page.goto('https://www.youtube.com', { waitUntil: 'domcontentloaded', timeout: 15000 });
+      await sleep(2000);
+
+      const avatar = await page.$('button#avatar-btn, img.yt-spec-avatar-shape__avatar');
+      if (avatar) {
+        console.log('  Signed in to YouTube.');
+        return true;
+      }
+    } catch {}
+    await sleep(3000);
   }
 
-  const oauth2 = new google.auth.OAuth2(clientId, clientSecret, REDIRECT_URI);
-  const tokenPath = join(projectRoot, TOKEN_PATH_REL);
+  console.error('  Timed out waiting for sign-in.');
+  return false;
+}
 
-  if (existsSync(tokenPath)) {
-    try {
-      const token = JSON.parse(readFileSync(tokenPath, 'utf-8'));
-      oauth2.setCredentials(token);
+async function isLoggedIn(page) {
+  try {
+    await page.goto('https://www.youtube.com', { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await sleep(2000);
+    const avatar = await page.$('button#avatar-btn, img.yt-spec-avatar-shape__avatar');
+    return !!avatar;
+  } catch {
+    return false;
+  }
+}
 
-      if (token.expiry_date && token.expiry_date < Date.now() && token.refresh_token) {
-        const { credentials } = await oauth2.refreshAccessToken();
-        oauth2.setCredentials(credentials);
-        writeFileSync(tokenPath, JSON.stringify(credentials, null, 2));
+async function uploadOneVideo(page, context, filePath, title, description, tags, privacy) {
+  const fileName = basename(filePath);
+  const fileSize = statSync(filePath).size;
+  console.log(`  Uploading ${fileName} (${(fileSize / 1_000_000).toFixed(1)} MB)...`);
+
+  await page.goto(YOUTUBE_UPLOAD_URL, { waitUntil: 'networkidle', timeout: 30000 });
+  await sleep(2000);
+
+  // If redirected to studio.youtube.com, look for the upload button there
+  if (page.url().includes('studio.youtube.com')) {
+    const createBtn = page.locator('#create-icon, [test-id="upload-button"], button:has-text("Create"), #upload-button');
+    if (await createBtn.count() > 0) {
+      await createBtn.first().click();
+      await sleep(1000);
+      const uploadItem = page.locator('tp-yt-paper-item:has-text("Upload videos"), #text-item-0');
+      if (await uploadItem.count() > 0) {
+        await uploadItem.first().click();
+        await sleep(2000);
       }
-
-      return oauth2;
-    } catch {
-      // Token invalid, re-auth below
     }
   }
 
-  const authUrl = oauth2.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-    prompt: 'consent',
-  });
+  // Set file via the hidden file input
+  const fileInput = page.locator('input[type="file"]');
+  await fileInput.setInputFiles(filePath);
+  await sleep(3000);
 
-  console.log('\n→ Opening browser for YouTube authorization...');
-  console.log(`  If it doesn't open, visit: ${authUrl}\n`);
+  // Wait for upload dialog to appear
+  await page.waitForSelector('ytcp-uploads-dialog', { timeout: 30000 });
+  await sleep(2000);
 
-  const { exec } = require('child_process');
-  exec(`open "${authUrl}"`);
+  // ── Title ──
+  // The title textbox is the first #textbox inside the dialog
+  const titleBox = page.locator('ytcp-uploads-dialog #textbox').first();
+  await titleBox.click({ clickCount: 3 });
+  await sleep(300);
+  await titleBox.fill(title.slice(0, 100));
+  await sleep(500);
 
-  const code = await waitForOAuthCode();
-  const { tokens } = await oauth2.getToken(code);
-  oauth2.setCredentials(tokens);
-  writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
-  console.log('  ✓ YouTube authorized. Token saved.\n');
+  // ── Description ──
+  // Description is the second #textbox
+  const descBox = page.locator('ytcp-uploads-dialog #textbox').nth(1);
+  await descBox.click();
+  await sleep(300);
+  await descBox.fill(description.slice(0, 5000));
+  await sleep(500);
 
-  return oauth2;
-}
+  // ── Not made for kids ──
+  const notForKids = page.locator('[name="VIDEO_MADE_FOR_KIDS_NOT_MFK"], #radioLabel:has-text("not made for kids"), tp-yt-paper-radio-button[name="NOT_MADE_FOR_KIDS"]');
+  if (await notForKids.count() > 0) {
+    await notForKids.first().click();
+    await sleep(500);
+  }
 
-function waitForOAuthCode() {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const url = new URL(req.url, `http://localhost:${REDIRECT_PORT}`);
-      const code = url.searchParams.get('code');
-      const error = url.searchParams.get('error');
+  // ── Show more / Advanced for tags ──
+  const showMore = page.locator('#toggle-button:has-text("Show more"), button:has-text("Show more")');
+  if (await showMore.count() > 0) {
+    await showMore.first().click();
+    await sleep(1000);
+  }
 
-      if (error) {
-        res.writeHead(400, { 'Content-Type': 'text/html' });
-        res.end('<h2>Authorization denied.</h2><p>You can close this tab.</p>');
-        server.close();
-        reject(new Error(`OAuth error: ${error}`));
-        return;
-      }
+  // ── Tags ──
+  const tagsInput = page.locator('ytcp-uploads-dialog #tags-container input, ytcp-uploads-dialog [id="tags-container"] #text-input');
+  if (await tagsInput.count() > 0) {
+    const tagString = tags.slice(0, 20).join(', ');
+    await tagsInput.first().click();
+    await sleep(300);
+    await tagsInput.first().fill(tagString);
+    await sleep(500);
+  }
 
-      if (code) {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end('<h2>YouTube authorized!</h2><p>You can close this tab and return to your IDE.</p>');
-        server.close();
-        resolve(code);
-      }
-    });
+  // ── Click NEXT through the steps (Details → Video elements → Checks → Visibility) ──
+  for (let step = 0; step < 3; step++) {
+    const nextBtn = page.locator('#next-button, ytcp-button#next-button');
+    if (await nextBtn.count() > 0) {
+      await nextBtn.first().click();
+      await sleep(2000);
+    }
+  }
 
-    server.listen(REDIRECT_PORT, () => {
-      console.log(`  Waiting for authorization on port ${REDIRECT_PORT}...`);
-    });
+  // ── Set visibility ──
+  await sleep(1000);
+  const privacyMap = {
+    'unlisted': 'UNLISTED',
+    'public': 'PUBLIC',
+    'private': 'PRIVATE',
+  };
+  const privacyName = privacyMap[privacy] || 'UNLISTED';
+  const privacyRadio = page.locator(`tp-yt-paper-radio-button[name="${privacyName}"], #${privacyName.toLowerCase()}-radio-button, [name="${privacyName}"]`);
+  if (await privacyRadio.count() > 0) {
+    await privacyRadio.first().click();
+    await sleep(1000);
+  }
 
-    setTimeout(() => {
-      server.close();
-      reject(new Error('OAuth timeout — no response within 120 seconds'));
-    }, 120_000);
-  });
-}
+  // ── Wait for processing to allow publish ──
+  // YouTube needs time to process before the Done button enables
+  console.log(`    Waiting for YouTube to process...`);
 
-async function uploadVideo(youtube, filePath, title, description, tags, privacy, categoryId) {
-  const fileSize = statSync(filePath).size;
-  const fileName = basename(filePath);
+  const maxProcessWait = 600_000; // 10 min
+  const processStart = Date.now();
 
-  console.log(`  Uploading ${fileName} (${(fileSize / 1_000_000).toFixed(1)} MB)...`);
+  while (Date.now() - processStart < maxProcessWait) {
+    // Check if there's still an "uploading" status
+    const uploading = await page.$('ytcp-video-upload-progress[uploading]');
+    if (!uploading) break;
+    await sleep(3000);
+  }
 
-  const res = await youtube.videos.insert({
-    part: ['snippet', 'status'],
-    requestBody: {
-      snippet: {
-        title: title.slice(0, 100),
-        description: description.slice(0, 5000),
-        tags: tags.slice(0, 30),
-        categoryId,
-        defaultLanguage: 'en',
-      },
-      status: {
-        privacyStatus: privacy,
-        selfDeclaredMadeForKids: false,
-      },
-    },
-    media: {
-      body: createReadStream(filePath),
-    },
-  });
+  // Extra buffer for processing
+  await sleep(2000);
 
-  const videoId = res.data.id;
-  return {
+  // ── Grab video URL before clicking Done ──
+  let videoUrl = '';
+  let videoId = '';
+
+  const urlElement = page.locator('a.style-scope.ytcp-video-info, span.video-url-fadeable a');
+  if (await urlElement.count() > 0) {
+    videoUrl = await urlElement.first().getAttribute('href') || '';
+  }
+
+  if (!videoUrl) {
+    const urlText = page.locator('.video-url-fadeable');
+    if (await urlText.count() > 0) {
+      const text = await urlText.first().textContent();
+      const match = text.match(/youtu\.be\/([a-zA-Z0-9_-]+)|watch\?v=([a-zA-Z0-9_-]+)/);
+      if (match) videoId = match[1] || match[2];
+    }
+  }
+
+  if (videoUrl && !videoId) {
+    const match = videoUrl.match(/watch\?v=([a-zA-Z0-9_-]+)|youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (match) videoId = match[1] || match[2];
+  }
+
+  // ── Click Done/Publish ──
+  const doneBtn = page.locator('#done-button, ytcp-button#done-button');
+  if (await doneBtn.count() > 0) {
+    await doneBtn.first().click();
+    await sleep(3000);
+  }
+
+  // Try to get URL from the post-publish dialog if we didn't get it before
+  if (!videoId) {
+    const postPublishLink = page.locator('a[href*="youtu.be"], a[href*="watch?v="]');
+    if (await postPublishLink.count() > 0) {
+      videoUrl = await postPublishLink.first().getAttribute('href') || '';
+      const match = videoUrl.match(/watch\?v=([a-zA-Z0-9_-]+)|youtu\.be\/([a-zA-Z0-9_-]+)/);
+      if (match) videoId = match[1] || match[2];
+    }
+  }
+
+  // Close any post-publish dialog
+  const closeBtn = page.locator('ytcp-button#close-button, [id="close-button"]');
+  if (await closeBtn.count() > 0) {
+    await closeBtn.first().click();
+    await sleep(1000);
+  }
+
+  if (!videoId) {
+    // Last resort: check YouTube Studio video list for the most recent upload
+    console.log(`    Could not capture URL automatically — check YouTube Studio`);
+    return null;
+  }
+
+  const result = {
     youtubeId: videoId,
     url: `https://youtube.com/watch?v=${videoId}`,
     embedUrl: `https://www.youtube.com/embed/${videoId}`,
     title,
   };
+
+  console.log(`    Published: ${result.url}`);
+  return result;
 }
 
 async function main() {
@@ -230,13 +322,16 @@ async function main() {
 
   const runDir = resolve(opts.runDir);
   if (!existsSync(runDir)) {
-    console.error(`✗ Demo run directory not found: ${runDir}`);
+    console.error(`Error: Demo run directory not found: ${runDir}`);
     process.exit(1);
   }
 
   const projectRoot = findProjectRoot();
   const projectName = opts.project || basename(projectRoot);
   const { description: baseDescription, tags } = loadProjectInfo(runDir);
+
+  const browserDir = join(projectRoot, '.demo-maker', 'youtube-browser');
+  if (!existsSync(browserDir)) mkdirSync(browserDir, { recursive: true });
 
   const videosToUpload = Object.entries(VIDEO_CONFIGS)
     .filter(([file]) => existsSync(join(runDir, file)))
@@ -248,75 +343,108 @@ async function main() {
     }));
 
   if (videosToUpload.length === 0) {
-    console.error('✗ No demo videos found in', runDir);
+    console.error('Error: No demo videos found in', runDir);
     process.exit(1);
   }
-
-  console.log(`\n🎬 YouTube Publisher — ${projectName}`);
-  console.log('='.repeat(50));
-  console.log(`  Run directory: ${runDir}`);
-  console.log(`  Videos found:  ${videosToUpload.length}`);
-  console.log(`  Privacy:       ${opts.privacy}`);
-  console.log('');
-
-  const auth = await getAuthClient(projectRoot);
-  const youtube = google.youtube({ version: 'v3', auth });
 
   const repoUrl = `https://github.com/julieclarkson/${projectName.toLowerCase().replace(/\s+/g, '-')}`;
   const description = baseDescription
     ? `${baseDescription}\n\n${repoUrl}`
     : `Product demo for ${projectName}.\n\n${repoUrl}`;
 
-  const results = {
-    publishedAt: new Date().toISOString(),
-    project: projectName,
-    privacy: opts.privacy,
-    videos: {},
-  };
-
-  let uploaded = 0;
-  let failed = 0;
-
-  for (const video of videosToUpload) {
-    try {
-      const result = await uploadVideo(
-        youtube,
-        video.path,
-        video.title,
-        description,
-        tags,
-        opts.privacy,
-        '28' // Science & Technology
-      );
-      results.videos[video.key] = result;
-      uploaded++;
-      console.log(`    ✓ ${result.url}`);
-    } catch (err) {
-      failed++;
-      console.error(`    ✗ Failed: ${video.file} — ${err.message}`);
-      if (err.errors) {
-        err.errors.forEach(e => console.error(`      ${e.reason}: ${e.message}`));
-      }
-    }
-  }
-
-  const outputPath = join(runDir, 'youtube-urls.json');
-  writeFileSync(outputPath, JSON.stringify(results, null, 2));
-
-  console.log('\n' + '='.repeat(50));
-  console.log(`✓ Published ${uploaded}/${videosToUpload.length} videos`);
-  if (failed > 0) console.log(`  ⚠ ${failed} failed`);
-  console.log(`\n  URLs saved to: ${outputPath}`);
-  console.log('\n  YouTube URLs:');
-
-  for (const [key, data] of Object.entries(results.videos)) {
-    console.log(`    ${key}: ${data.url}`);
-  }
-
   console.log('');
+  console.log('='.repeat(50));
+  console.log(`  YouTube Publisher — ${projectName}`);
+  console.log('='.repeat(50));
+  console.log(`  Run directory: ${runDir}`);
+  console.log(`  Videos found:  ${videosToUpload.length}`);
+  console.log(`  Privacy:       ${opts.privacy}`);
+
+  // Launch persistent browser
+  const context = await chromium.launchPersistentContext(browserDir, {
+    headless: false,
+    channel: 'chromium',
+    viewport: { width: 1280, height: 900 },
+    args: ['--disable-blink-features=AutomationControlled'],
+  });
+
+  const page = context.pages()[0] || await context.newPage();
+
+  try {
+    // Check if already logged in
+    const loggedIn = await isLoggedIn(page);
+    if (!loggedIn) {
+      const signedIn = await waitForLogin(page);
+      if (!signedIn) {
+        console.error('  Could not confirm YouTube sign-in. Aborting.');
+        await context.close();
+        process.exit(1);
+      }
+    } else {
+      console.log('  Already signed into YouTube.');
+    }
+
+    console.log('');
+
+    const results = {
+      publishedAt: new Date().toISOString(),
+      project: projectName,
+      privacy: opts.privacy,
+      videos: {},
+    };
+
+    let uploaded = 0;
+    let failed = 0;
+
+    for (const video of videosToUpload) {
+      try {
+        const result = await uploadOneVideo(
+          page,
+          context,
+          video.path,
+          video.title,
+          description,
+          tags,
+          opts.privacy
+        );
+
+        if (result) {
+          results.videos[video.key] = result;
+          uploaded++;
+        } else {
+          failed++;
+          console.log(`    Could not capture URL for ${video.file}`);
+        }
+      } catch (err) {
+        failed++;
+        console.error(`    Failed: ${video.file} — ${err.message}`);
+      }
+
+      // Brief pause between uploads
+      await sleep(2000);
+    }
+
+    const outputPath = join(runDir, 'youtube-urls.json');
+    writeFileSync(outputPath, JSON.stringify(results, null, 2));
+
+    console.log('');
+    console.log('='.repeat(50));
+    console.log(`  Published ${uploaded}/${videosToUpload.length} videos`);
+    if (failed > 0) console.log(`  ${failed} failed — check YouTube Studio manually`);
+    console.log(`  URLs saved to: ${outputPath}`);
+    console.log('');
+
+    for (const [key, data] of Object.entries(results.videos)) {
+      console.log(`    ${key}: ${data.url}`);
+    }
+
+    console.log('');
+  } finally {
+    await context.close();
+  }
 }
 
 main().catch(err => {
-  console.error('✗ Fatal error:', err.message);
+  console.error('Fatal error:', err.message);
   process.exit(1);
 });

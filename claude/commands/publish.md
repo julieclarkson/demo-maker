@@ -1,6 +1,6 @@
 ---
 name: publish
-description: Upload demo videos to YouTube and get embeddable URLs. Requires YouTube API credentials in .demo-maker/.env.
+description: Upload demo videos to YouTube and get embeddable URLs. No API keys needed — just sign into YouTube.
 ---
 
 Publish demo videos to YouTube.

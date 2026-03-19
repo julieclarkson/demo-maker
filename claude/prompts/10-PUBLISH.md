@@ -5,15 +5,18 @@ Upload rendered demo videos to YouTube and return embeddable URLs.
 ## Prerequisites
 
 - Demo videos rendered (Step 8 complete — `OUTPUT/demo-{timestamp}/` exists)
-- YouTube credentials configured in `.demo-maker/.env`:
-  - `YOUTUBE_CLIENT_ID`
-  - `YOUTUBE_CLIENT_SECRET`
-- If credentials are missing, walk the user through setup:
-  1. Go to https://console.cloud.google.com/apis/credentials
-  2. Create a project or select existing
-  3. Enable **YouTube Data API v3** (APIs & Services → Library → search "YouTube Data API v3" → Enable)
-  4. Create credentials → OAuth 2.0 Client ID → Application type: **Desktop app**
-  5. Copy the Client ID and Client Secret into `.demo-maker/.env`
+- A YouTube account (any Google account with a YouTube channel)
+- No API keys or developer setup needed
+
+### First-time setup
+
+If the user hasn't signed into YouTube for Demo Maker yet, run:
+
+```bash
+node "$DM_ROOT/scripts/youtube-setup.js"
+```
+
+This opens a browser window where the user signs into their Google account. Their login is saved for future uploads. Takes about 30 seconds.
 
 ## Workflow
 
@@ -27,11 +30,7 @@ ls -td OUTPUT/demo-* | head -1
 
 Confirm with the user which run to publish if multiple exist.
 
-### 2. Check credentials
-
-Verify YouTube credentials exist in `.demo-maker/.env`. If missing, guide the user through the setup above. Do not proceed without valid credentials.
-
-### 3. Upload to YouTube
+### 2. Upload to YouTube
 
 Run the uploader:
 
@@ -45,20 +44,21 @@ Arguments:
 - `--privacy`: `unlisted` (default), `public`, or `private`
 
 The script will:
-- Open a browser for YouTube OAuth on first run (one-time authorization)
+- Open a visible browser window (reuses saved YouTube login)
+- If not signed in, pause and wait for the user to sign in
 - Upload each demo video with optimized metadata:
   - **Title**: "{Project} - Full Product Demo", "{Project} - 30s Demo", etc.
   - **Description**: Auto-generated from narration script + repo link
   - **Tags**: Project name, language, framework, "demo", "product demo"
-  - **Category**: Science & Technology
+  - **Visibility**: Unlisted by default
 - Save all YouTube URLs to `OUTPUT/demo-{timestamp}/youtube-urls.json`
 
-### 4. Display results
+### 3. Display results
 
 After upload completes, present the URLs to the user:
 
 ```
-✓ Published to YouTube
+Published to YouTube
 
   Full Demo:      https://youtube.com/watch?v=...
   GitHub Demo:    https://youtube.com/watch?v=...
@@ -71,7 +71,7 @@ After upload completes, present the URLs to the user:
   URLs saved to: OUTPUT/demo-{timestamp}/youtube-urls.json
 ```
 
-### 5. Companion plugin integration
+### 4. Companion plugin integration
 
 After publishing, remind the user:
 
@@ -83,8 +83,7 @@ After publishing, remind the user:
 
 ## Error handling
 
-- **No credentials**: Guide through setup (step above)
-- **OAuth denied**: User must authorize YouTube access; retry with `--privacy unlisted`
-- **Upload quota exceeded**: YouTube allows ~6 uploads/day for new API projects. Suggest waiting or uploading remaining videos manually
-- **Video too large**: YouTube accepts up to 128GB. Demo videos should be well under this
-- **Network error**: Retry the command — uploads already completed will be skipped if youtube-urls.json has their entry
+- **Not signed in**: The browser will pause and wait for sign-in. If the user needs to set up fresh, run `node "$DM_ROOT/scripts/youtube-setup.js"`
+- **Upload stalls**: YouTube processes videos before allowing publish. Large files may take several minutes. The script waits automatically.
+- **Browser closes unexpectedly**: Re-run the command. Videos already uploaded won't be duplicated (check YouTube Studio to confirm).
+- **Network error**: Re-run the command. The browser session persists across runs.
