@@ -147,35 +147,29 @@ Store in context: `strategy.colorScheme`
 
 ---
 
-## Question 4: Animation Style & Storytelling
+## Animation Style (Auto-Set)
 
-Ask:
+Do NOT ask the user about animation style. Motion graphics is the only implemented rendering mode. Set automatically:
 
-```
-What kind of animation style do you want?
-
-1. Motion graphics — smooth shapes, icons, data visualizations, pipeline diagrams
-   (think: Stripe's product videos)
-
-2. Motion graphics + characters — same as above but with animated characters
-   (Lottie/Rive figures that point, react, interact with the UI)
-
-3. Developer authentic — real terminal recordings, real browser, minimal animation
-   (unpolished on purpose — the product speaks for itself)
-
-Your choice: [1-3]
+```json
+{
+  "strategy.animationStyle": "motion-graphics"
+}
 ```
 
-Store in context: `strategy.animationStyle`
-
-This will determine:
-- Remotion composition structure (which scene components to use)
-- Whether to include Lottie/Rive character animations
-- Transition style (cuts vs. crossfades)
+<!-- FUTURE DEV: Add alternative animation styles when scene components support them.
+     Planned styles:
+     - "motion-graphics-characters": Lottie/Rive animated figures that point, react,
+       and interact with UI elements. Requires adding Lottie/Rive assets and integrating
+       @remotion/lottie or @rive-app/react-canvas into scene components.
+     - "developer-authentic": Raw terminal recordings and browser captures composited
+       directly, minimal animation. Requires adding a passthrough/capture overlay mode
+       to each scene component that uses Playwright recordings from Step 5.
+     When implemented, add a question here with the available styles. -->
 
 ---
 
-## Question 5: Scale & Dynamism
+## Question 3: Scale & Dynamism
 
 Ask:
 
@@ -194,7 +188,7 @@ Store in context: `strategy.dynamism`
 
 ---
 
-## Question 6: Demo Focus
+## Question 4: Demo Focus
 
 Ask:
 
@@ -213,7 +207,7 @@ Store in context: `strategy.demoFocus`
 
 ---
 
-## Question 7: Case Study Integration (Conditional)
+## Question 5: Case Study Integration (Conditional)
 
 Only ask if `.case-study/` exists and contains a build narrative:
 
@@ -248,7 +242,7 @@ After all questions are answered, store in context:
     },
     "visualTier": "remotion",
     "aiVideoProvider": null,
-    "colorScheme": "dark-mode",
+    "colorScheme": "light",
     "animationStyle": "motion-graphics",
     "dynamism": "moderate",
     "demoFocus": "end-to-end",
@@ -268,9 +262,8 @@ Strategy Confirmed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Platforms:      All 7 (Full, GitHub, Twitter, PH, Instagram, TikTok, GIF)
 Voice:          Storyteller (Arnold) — warm, narrative
-Rendering:      Remotion
-Color scheme:   Dark mode
-Animation:      Motion graphics
+Rendering:      Remotion (motion graphics)
+Color scheme:   Light & clean
 Dynamism:       Moderate
 Focus:          End-to-end workflow
 Case Study:     Weave build story in
