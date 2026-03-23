@@ -16,11 +16,11 @@ interface Props {
 
 const FILES = [
   { name: "demo-full.mp4", badge: "65s", size: "12 MB", color: "#3B82F6", icon: "▶", bg: "#EFF6FF" },
+  { name: "demo-github.mp4", badge: "60s", size: "10 MB", color: "#111827", icon: "GH", bg: "#F9FAFB" },
   { name: "demo-twitter.mp4", badge: "30s", size: "4 MB", color: "#111827", icon: "𝕏", bg: "#F9FAFB" },
-  { name: "demo-instagram.mp4", badge: "30s", size: "5 MB", color: "#E4405F", icon: "IG", bg: "#FFF0F3" },
-  { name: "demo-tiktok.mp4", badge: "30s", size: "5 MB", color: "#111827", icon: "TT", bg: "#F9FAFB" },
   { name: "demo-producthunt.mp4", badge: "45s", size: "8 MB", color: "#F97316", icon: "PH", bg: "#FFF7ED" },
-  { name: "demo-github.gif", badge: "GIF", size: "6 MB", color: "#111827", icon: "GH", bg: "#F9FAFB" },
+  { name: "demo-instagram.mp4", badge: "55s", size: "6 MB", color: "#E4405F", icon: "IG", bg: "#FFF0F3" },
+  { name: "demo-tiktok.mp4", badge: "49s", size: "5 MB", color: "#111827", icon: "TT", bg: "#F9FAFB" },
 ];
 
 export const OutputScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
@@ -131,7 +131,7 @@ export const OutputScene: React.FC<Props> = ({ colorScheme, durationFrames }) =>
           fontWeight: 800,
         }}
       >
-        One command. Every platform. Done.
+        Six videos. Ready to ship.
       </div>
     </AbsoluteFill>
   );

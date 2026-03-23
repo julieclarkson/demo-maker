@@ -2,7 +2,7 @@
 
 **Auto-generate narrated MP4 product demos from your codebase.**
 
-Point it at your project, review the script, hit render. You get 7 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, TikTok, and GIF — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
+Point it at your project, review the script, hit render. You get 6 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, and TikTok — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
 
 https://github.com/julieclarkson/demo-maker/releases/download/demo-20260316-142115/demo-github.mp4
 
@@ -32,8 +32,6 @@ OUTPUT/demo-{timestamp}/
 ├── demo-producthunt.mp4     45s for Product Hunt gallery
 ├── demo-instagram.mp4       vertical (1080×1920) for Reels
 ├── demo-tiktok.mp4          vertical (1080×1920) for TikTok
-├── demo-gif.mp4             short loop for inline previews
-├── demo-github.gif          GIF for README embedding
 ├── captions/                SRT files per platform
 ├── thumbnails/              auto-generated per platform
 └── video-urls.json          published URLs (after Step 9)
@@ -48,7 +46,7 @@ OUTPUT/demo-{timestamp}/
 | [Playwright](https://playwright.dev) | UI screen capture (browser automation) |
 | [ElevenLabs](https://elevenlabs.io) | AI voice narration with Voice Design |
 | [Remotion](https://remotion.dev) | React-powered video rendering and composition |
-| [FFmpeg](https://ffmpeg.org) | Video encoding, GIF conversion, thumbnails |
+| [FFmpeg](https://ffmpeg.org) | Video encoding, thumbnails |
 | Node.js | Scripting and orchestration |
 
 ---
@@ -123,10 +121,10 @@ After installing, say **"make a demo"** in Cursor or run `/demo` in Claude. The 
 | 5. Capture | Records your UI via Playwright |
 | 6. Narrate | Generates voice via ElevenLabs (voice-locked for consistency) |
 | 7. Render | Assembles video via Remotion + FFmpeg |
-| 8. Cutdowns | Generates all 7 platform-specific versions |
+| 8. Cutdowns | Generates all 6 platform-specific versions |
 | 9. Publish | Uploads to GitHub Release, embeds in companion plugin outputs (optional) |
 
-**Step 9** is optional. If you say yes, it uploads all 7 videos to a GitHub Release and automatically embeds the URLs into your Case Study Maker pages and Git Launcher posts.
+**Step 9** is optional. If you say yes, it uploads all 6 videos to a GitHub Release and automatically embeds the URLs into your Case Study Maker pages and Git Launcher posts.
 
 ---
 
@@ -203,4 +201,4 @@ claude/       Claude plugin (skills, commands, prompts, scripts, Remotion projec
 
 ## License
 
-MIT — free and open source.
+MIT License.

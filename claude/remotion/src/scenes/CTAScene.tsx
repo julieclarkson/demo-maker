@@ -98,7 +98,7 @@ export const CTAScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
           fontWeight: 500,
         }}
       >
-        Your product deserves to be seen.
+        Get back to building.
       </div>
 
       {/* GitHub star button — bouncy with pulse */}
@@ -157,7 +157,7 @@ export const CTAScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
             lineHeight: 1.5,
           }}
         >
-          Works in Cursor IDE &amp; Claude Cowork
+          Part of a three-plugin kit
         </div>
         <div
           style={{
@@ -169,7 +169,7 @@ export const CTAScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
             letterSpacing: -0.5,
           }}
         >
-          Your API keys. Your machine. Your demo.
+          Runs on your machine. Uses your API keys.
         </div>
       </div>
 

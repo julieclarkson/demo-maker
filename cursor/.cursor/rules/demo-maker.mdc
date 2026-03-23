@@ -41,8 +41,9 @@ If `.case-study/` does not exist, warn: "Case Study Maker is not installed. Demo
 Then run the activation flow:
 
 1. Create `.demo-maker/` directory with `config.json`, `captures/`, `narration/`, `clips/`
-2. Add `.demo-maker/` and `OUTPUT/` to `.gitignore`
-3. Ask for ElevenLabs API key (or skip for caption-only mode)
+2. Copy the bundled voice sample: if `media/voice-sample.mp3` exists and `.demo-maker/voice-sample.mp3` does not, copy it. This gives every project a consistent default narrator without any voice setup.
+3. Create `.demo-maker/.env` from `.env.example` if it doesn't exist. **NEVER ask the user to paste API keys in chat.** Tell them: "Open `.demo-maker/.env` and add your ElevenLabs API key. Never paste keys in chat."
+4. Add `.demo-maker/` and `OUTPUT/` to `.gitignore`
 4. Run `node .demo-maker-plugin/scripts/preflight.js`
 5. Show available commands:
    ```
@@ -94,7 +95,7 @@ After Step 8 completes, read and follow `$DM_ROOT/prompts/09-INTEGRATE.md`. This
 
 1. Asks: "Would you like to publish these demos and integrate them into your case study pages and launch kit?"
 2. If yes, runs the full automated flow:
-   - **Publish**: Uploads all 7 videos to a GitHub Release via `gh` CLI (no manual steps)
+   - **Publish**: Uploads all 6 videos to a GitHub Release via `gh` CLI (no manual steps)
    - **Embed in CSM**: If `.case-study/` exists, embeds published URLs into marketing + portfolio pages, updates CSP headers
    - **Embed in GL**: If `git-launch/LAUNCH_KIT/` exists, replaces local paths with published URLs in all launch kit posts
    - **Save URLs**: Writes `video-urls.json` so future CSM/GL runs auto-embed

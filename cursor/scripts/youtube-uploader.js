@@ -36,7 +36,6 @@ const VIDEO_CONFIGS = {
   'demo-producthunt.mp4': { suffix: 'Product Hunt Demo',    key: 'demo-producthunt', scriptFile: 'script-producthunt.md', order: 4 },
   'demo-instagram.mp4':   { suffix: 'Demo (Vertical)',      key: 'demo-instagram',   scriptFile: 'script-instagram.md',   order: 5 },
   'demo-tiktok.mp4':      { suffix: 'Demo (Short)',         key: 'demo-tiktok',      scriptFile: 'script-tiktok.md',      order: 6 },
-  'demo-gif.mp4':         { suffix: 'Quick Preview',        key: 'demo-gif',         scriptFile: 'script-gif.md',         order: 7 },
 };
 
 function ask(prompt) {

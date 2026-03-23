@@ -6,7 +6,7 @@
       "elevenlabs": {
         "voiceId": "pNInz6obpgDQGcFmaJgB",
         "voiceName": "Adam",
-        "model": "eleven_multilingual_v2",
+        "model": "eleven_monolingual_v1",
         "settings": { "stability": 0.45, "similarity_boost": 0.75, "style": 0.35 }
       },
       "openai": { "voice": "onyx", "model": "tts-1", "speed": 1.05 }
@@ -17,7 +17,7 @@
       "elevenlabs": {
         "voiceId": "ErXwobaYiN019PkySvjV",
         "voiceName": "Antoni",
-        "model": "eleven_multilingual_v2",
+        "model": "eleven_monolingual_v1",
         "settings": { "stability": 0.6, "similarity_boost": 0.8, "style": 0.2 }
       },
       "openai": { "voice": "echo", "model": "tts-1", "speed": 0.95 }
@@ -28,7 +28,7 @@
       "elevenlabs": {
         "voiceId": "VR6AewLTigWG4xSOukaG",
         "voiceName": "Arnold",
-        "model": "eleven_multilingual_v2",
+        "model": "eleven_monolingual_v1",
         "settings": { "stability": 0.5, "similarity_boost": 0.7, "style": 0.45 }
       },
       "openai": { "voice": "fable", "model": "tts-1", "speed": 0.9 }
@@ -39,7 +39,7 @@
       "elevenlabs": {
         "voiceId": "TxGEqnHWrfWFTfGW9XjX",
         "voiceName": "Josh",
-        "model": "eleven_multilingual_v2",
+        "model": "eleven_monolingual_v1",
         "settings": { "stability": 0.55, "similarity_boost": 0.85, "style": 0.4 }
       },
       "openai": { "voice": "alloy", "model": "tts-1", "speed": 1.1 }

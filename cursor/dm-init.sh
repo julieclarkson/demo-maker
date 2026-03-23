@@ -33,18 +33,21 @@ mkdir -p "$PROJECT_ROOT/.demo-maker/captures"
 mkdir -p "$PROJECT_ROOT/.demo-maker/narration"
 mkdir -p "$PROJECT_ROOT/.demo-maker/clips"
 
+# Copy bundled voice sample if available (provides a default voice out of the box)
+if [ -f "$SCRIPT_DIR/media/voice-sample.mp3" ] && [ ! -f "$PROJECT_ROOT/.demo-maker/voice-sample.mp3" ]; then
+  cp "$SCRIPT_DIR/media/voice-sample.mp3" "$PROJECT_ROOT/.demo-maker/voice-sample.mp3"
+  echo "  ✓ Default voice sample installed"
+elif [ -f "$PROJECT_ROOT/.demo-maker/voice-sample.mp3" ]; then
+  echo "  ✓ Voice sample already present"
+fi
+
 # Create config if it doesn't exist
 CONFIG_FILE="$PROJECT_ROOT/.demo-maker/config.json"
 if [ ! -f "$CONFIG_FILE" ]; then
   cat > "$CONFIG_FILE" << 'CONFIGEOF'
 {
   "version": 1,
-  "elevenLabs": {
-    "apiKey": ""
-  },
-  "openai": {
-    "apiKey": ""
-  },
+  "apiKeys": "loaded from .demo-maker/.env — never stored here",
   "voice": {
     "provider": "elevenlabs",
     "voiceId": "",
@@ -62,6 +65,20 @@ CONFIGEOF
   echo "  ✓ Config created at .demo-maker/config.json"
 else
   echo "  ✓ Config already exists"
+fi
+
+# Create .env from .env.example if it doesn't exist
+ENV_FILE="$PROJECT_ROOT/.demo-maker/.env"
+if [ ! -f "$ENV_FILE" ] && [ -f "$SCRIPT_DIR/.env.example" ]; then
+  cp "$SCRIPT_DIR/.env.example" "$ENV_FILE"
+  echo "  ✓ .env created from template — edit .demo-maker/.env to add your API keys"
+elif [ ! -f "$ENV_FILE" ]; then
+  cat > "$ENV_FILE" << 'ENVEOF'
+# Demo Maker API Keys — edit this file directly, never paste keys in chat
+# Get your key: https://elevenlabs.io/ → Profile → API Key
+ELEVENLABS_API_KEY=your-key-here
+ENVEOF
+  echo "  ✓ .env created — edit .demo-maker/.env to add your API keys"
 fi
 
 # Update .gitignore
@@ -88,7 +105,8 @@ echo ""
 echo "✓ Demo Maker initialized!"
 echo ""
 echo "Next steps:"
-echo "  1. Add your ElevenLabs API key to .demo-maker/config.json"
+echo "  1. Edit .demo-maker/.env and add your ElevenLabs API key"
+echo "     (never paste API keys in chat — edit the file directly)"
 echo "  2. Tell Cursor: \"make a demo\" or \"run demo maker\""
 echo ""
 echo "Or for caption-only mode (no API key needed):"

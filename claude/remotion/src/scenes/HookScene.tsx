@@ -37,9 +37,9 @@ export const HookScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
 
   // Visitor avatars bounce in one by one
   const visitors = [
-    { emoji: "👀", label: "Visitor", delay: 90 },
-    { emoji: "🤔", label: "Investor", delay: 100 },
-    { emoji: "💼", label: "Customer", delay: 110 },
+    { emoji: "𝕏", label: "Twitter", delay: 90 },
+    { emoji: "PH", label: "Product Hunt", delay: 100 },
+    { emoji: "📱", label: "Instagram", delay: 110 },
   ];
 
   // Phase 3: Everything blurs + dims, headline zooms in (130-180)
@@ -147,7 +147,7 @@ export const HookScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
               marginLeft: 8,
             }}
           >
-            Where's the demo? 🎬
+            Each wants a video 🎬
           </div>
         </div>
       </AbsoluteFill>
@@ -170,7 +170,7 @@ export const HookScene: React.FC<Props> = ({ colorScheme, durationFrames }) => {
               letterSpacing: -3,
             }}
           >
-            They want a demo.
+            Actually — several.
           </div>
         </AbsoluteFill>
       )}

@@ -15,13 +15,11 @@ interface Props {
 }
 
 const STEPS = [
-  { label: "Analyze", icon: "🔍", startFrame: 25, color: "#3B82F6" },
-  { label: "Script", icon: "📝", startFrame: 70, color: "#8B5CF6" },
-  { label: "Approve", icon: "✅", startFrame: 115, color: "#10B981" },
-  { label: "Capture", icon: "📸", startFrame: 160, color: "#EC4899" },
-  { label: "Narrate", icon: "🎙", startFrame: 205, color: "#F59E0B" },
-  { label: "Render", icon: "🎬", startFrame: 250, color: "#EF4444" },
-  { label: "Deliver", icon: "🚀", startFrame: 295, color: "#6366F1" },
+  { label: "Capture", icon: "📸", startFrame: 25, color: "#3B82F6" },
+  { label: "Narrate", icon: "🎙", startFrame: 90, color: "#8B5CF6" },
+  { label: "Render", icon: "🎬", startFrame: 155, color: "#EC4899" },
+  { label: "Export", icon: "📦", startFrame: 220, color: "#F59E0B" },
+  { label: "Publish", icon: "🚀", startFrame: 285, color: "#6366F1" },
 ];
 
 export const WorkflowScene: React.FC<Props> = ({ colorScheme, durationFrames, isVertical = false }) => {
@@ -55,7 +53,7 @@ export const WorkflowScene: React.FC<Props> = ({ colorScheme, durationFrames, is
           transform: `scale(${titleScale})`,
         }}
       >
-        Fully automatic. You own it all.
+        From code to video. Automatically.
       </div>
 
       {/* Pipeline — bigger nodes with vibrant colors */}

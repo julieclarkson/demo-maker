@@ -92,16 +92,16 @@ Your choice: [1-4]
 **If user picks 1 (ElevenLabs key):**
 
 ```
-How would you like to provide your ElevenLabs API key?
+How would you like to add your ElevenLabs API key?
 
-1. Paste it into .demo-maker/.env (I'll create the file — key stays local, never committed)
+1. Edit .demo-maker/.env directly (I'll create the file, you add the key yourself)
 2. Use 1Password CLI (op read) to inject it automatically
 3. Set it as a shell environment variable (export ELEVENLABS_API_KEY=...)
 
 Your choice: [1-3]
 ```
 
-- **Option 1**: Create/update `.demo-maker/.env` with the key. Show the user the exact line that will be written. Confirm before writing.
+- **Option 1**: Create `.demo-maker/.env` from the template if it doesn't exist. Then tell the user: "Open `.demo-maker/.env` in your editor and replace `your-key-here` with your actual key on the `ELEVENLABS_API_KEY=` line. **Do not paste the key in this chat.**" Wait for the user to confirm they've done it, then validate.
 - **Option 2**: Guide the user through the 1Password setup:
   1. Check if `op` is installed (`which op`)
   2. If installed, ask for the vault and item name

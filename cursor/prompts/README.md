@@ -236,33 +236,34 @@ If a step fails:
 
 ## Configuration
 
-All steps reference `.demo-maker/config.json`:
+**API keys** live in `.demo-maker/.env` (gitignored, never read by the AI agent):
+
+```
+ELEVENLABS_API_KEY=your-key-here
+```
+
+**Preferences** live in `.demo-maker/config.json` (no secrets):
 
 ```json
 {
-  "elevenLabs": {
-    "apiKey": "sk_...",
-    "voiceId": "21m00Tcm4TlvDq8ikWAM"
-  },
-  "openai": {
-    "apiKey": "sk-..."
-  },
+  "version": 1,
+  "apiKeys": "loaded from .demo-maker/.env — never stored here",
   "voice": {
+    "provider": "elevenlabs",
+    "voiceId": "",
     "preset": "dev-casual"
   },
-  "video": {
-    "resolution": "1920x1080",
-    "fps": 30,
-    "codec": "h264",
-    "maxSize": "25MB"
-  },
-  "project": {
-    "port": 3000
+  "defaults": {
+    "platform": "all",
+    "tone": "storytelling",
+    "focus": "end-to-end",
+    "style": "developer-authentic",
+    "resolution": "1920x1080"
   }
 }
 ```
 
-Create this file in `.demo-maker/` before starting, or the workflow will create a default version.
+The workflow creates both files during setup. Never paste API keys in chat — edit `.env` directly.
 
 ---
 

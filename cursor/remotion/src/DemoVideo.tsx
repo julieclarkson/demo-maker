@@ -114,9 +114,6 @@ const PLATFORM_CONFIGS: Record<string, { segment: string; duration: number }[]> 
     { segment: "result", duration: 9 },
     { segment: "cta", duration: 19 },
   ],
-  gif: [
-    { segment: "hook", duration: 14 },
-  ],
 };
 
 const FADE_FRAMES = 12;

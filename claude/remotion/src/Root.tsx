@@ -106,18 +106,6 @@ export const RemotionRoot: React.FC = () => {
         calculateMetadata={calcMetadata}
       />
 
-      {/* GIF Preview — 800x450 */}
-      <Composition
-        id="DemoGif"
-        component={DemoVideo}
-        durationInFrames={calculateTotalFrames("gif", FPS)}
-        fps={FPS}
-        width={800}
-        height={450}
-        defaultProps={{ ...defaultProps, platform: "gif" }}
-        calculateMetadata={calcMetadata}
-      />
-
       {/* Legacy ID for backwards compatibility */}
       <Composition
         id="DemoVideo"

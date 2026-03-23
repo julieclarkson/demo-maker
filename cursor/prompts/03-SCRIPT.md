@@ -142,7 +142,7 @@ unused variables, security gaps... all in one shot."
 Your team ships faster. You sleep better."
 
 [CTA - 8s]
-"[Project Name] is open source on GitHub.
+"[Project Name] is on GitHub.
 Made with Demo Maker. Let's build better."
 ```
 

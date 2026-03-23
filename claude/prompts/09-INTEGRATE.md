@@ -9,7 +9,7 @@ Upload demo videos to a GitHub Release and embed them into Case Study Maker page
 After Step 8 (Cutdowns) completes, ask:
 
 ```
-Demo generation complete! 7 platform-ready videos are in OUTPUT/{run-id}/.
+Demo generation complete! 6 platform-ready videos are in OUTPUT/{run-id}/.
 
 Would you like to publish these demos and integrate them into your
 case study pages and launch kit? This will:
@@ -47,21 +47,20 @@ node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/{run-id} \
   --repo "{owner/repo}"
 ```
 
-This creates a tagged release (e.g. `demo-20260316-142115`), uploads all 7 videos as release assets, and writes `video-urls.json` to the run directory. No manual steps.
+This creates a tagged release (e.g. `demo-20260316-142115`), uploads all 6 videos as release assets, and writes `video-urls.json` to the run directory. No manual steps.
 
 ### Step 3: Confirm success
 
 The script outputs all URLs. Display them to the user:
 
 ```
-Published 7/7 videos to GitHub Release:
+Published 6/6 videos to GitHub Release:
   demo-full:        https://github.com/{owner}/{repo}/releases/download/{tag}/demo-full.mp4
   demo-github:      https://github.com/{owner}/{repo}/releases/download/{tag}/demo-github.mp4
   demo-twitter:     https://github.com/{owner}/{repo}/releases/download/{tag}/demo-twitter.mp4
   demo-producthunt: https://github.com/{owner}/{repo}/releases/download/{tag}/demo-producthunt.mp4
   demo-instagram:   https://github.com/{owner}/{repo}/releases/download/{tag}/demo-instagram.mp4
   demo-tiktok:      https://github.com/{owner}/{repo}/releases/download/{tag}/demo-tiktok.mp4
-  demo-gif:         https://github.com/{owner}/{repo}/releases/download/{tag}/demo-gif.mp4
 
 Release page: https://github.com/{owner}/{repo}/releases/tag/{tag}
 ```
@@ -181,8 +180,8 @@ If `git-launch/LAUNCH_KIT/` exists, update each platform post with its matching 
 | `demo-producthunt.mp4` | `producthunt-listing.md` | `Download [demo-producthunt.mp4]({url}) and upload as gallery item` |
 | `demo-instagram.mp4` | `instagram-post.md` | `**Attach video:** [demo-instagram.mp4]({url})` |
 | `demo-tiktok.mp4` | `tiktok-post.md` | `**Attach video:** [demo-tiktok.mp4]({url})` |
-| `demo-gif.mp4` | `reddit-post.md` | `**Demo preview:** [demo-gif.mp4]({url})` |
-| `demo-gif.mp4` | `hackernews-post.md` | `**Demo preview:** [demo-gif.mp4]({url})` |
+| `demo-twitter.mp4` | `reddit-post.md` | `**Demo preview:** [demo-twitter.mp4]({url})` |
+| `demo-twitter.mp4` | `hackernews-post.md` | `**Demo preview:** [demo-twitter.mp4]({url})` |
 | `demo-github.mp4` | `devto-post.md` | Markdown video link |
 
 For each file: check it exists, find the local path reference (e.g. `OUTPUT/demo-*/demo-twitter.mp4`), replace with the published URL from `video-urls.json`.
@@ -192,8 +191,8 @@ Show progress:
 Integrating published URLs into launch kit...
   twitter-thread.md       → demo-twitter.mp4    ✓
   producthunt-listing.md  → demo-producthunt.mp4 ✓
-  reddit-post.md          → demo-gif.mp4         ✓
-  hackernews-post.md      → demo-gif.mp4         ✓
+  reddit-post.md          → demo-twitter.mp4     ✓
+  hackernews-post.md      → demo-twitter.mp4     ✓
 ```
 
 ---

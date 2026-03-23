@@ -103,7 +103,11 @@ function httpsRequest(options, data = null) {
 /**
  * Generate TTS with ElevenLabs standard TTS API
  */
-async function generateWithElevenLabs(text, voiceId, apiKey, apiUrl = 'https://api.elevenlabs.io') {
+function getElevenLabsModel(language) {
+  return (!language || language === 'en') ? 'eleven_monolingual_v1' : 'eleven_multilingual_v2';
+}
+
+async function generateWithElevenLabs(text, voiceId, apiKey, apiUrl = 'https://api.elevenlabs.io', language = 'en') {
   try {
     const url = new URL(`/v1/text-to-speech/${voiceId}`, apiUrl);
 
@@ -120,12 +124,12 @@ async function generateWithElevenLabs(text, voiceId, apiKey, apiUrl = 'https://a
 
     const payload = {
       text,
-      model_id: 'eleven_turbo_v2_5',  // English-only — prevents multilingual model from switching languages
+      model_id: getElevenLabsModel(language),
       voice_settings: {
-        stability: 0.5,           // Lower = more dynamic, expressive delivery
-        similarity_boost: 0.75,   // Keep voice consistent
-        style: 0.7,              // HIGH = emotionally expressive, compelling, not flat
-        use_speaker_boost: true   // Clearer, more present voice
+        stability: 0.5,
+        similarity_boost: 0.75,
+        style: 0.7,
+        use_speaker_boost: true
       }
     };
 
@@ -420,8 +424,14 @@ function parseScript(scriptContent) {
       if (trimmed === '---') continue;
       if (trimmed.startsWith('**Visual')) continue;
       if (trimmed.startsWith('**[Visual')) continue;
-      if (trimmed.startsWith('## Anti-Slop')) { currentSegment = null; continue; }
-      if (trimmed.startsWith('## Cut-down')) { currentSegment = null; continue; }
+      if (trimmed.startsWith('## Anti-Slop')) {
+        if (currentSegment && currentSegment.text.trim()) segments.push(currentSegment);
+        currentSegment = null; continue;
+      }
+      if (trimmed.startsWith('## Cut-down')) {
+        if (currentSegment && currentSegment.text.trim()) segments.push(currentSegment);
+        currentSegment = null; continue;
+      }
 
       // Capture narration text (with or without > blockquote prefix)
       if (trimmed.startsWith('>')) {
@@ -444,7 +454,7 @@ function parseScript(scriptContent) {
 /**
  * Generate narration for all segments
  */
-async function generateNarrations(segments, config, outputDir) {
+async function generateNarrations(segments, config, outputDir, language = 'en') {
   const results = {
     provider: 'none',
     narrations: [],
@@ -573,7 +583,8 @@ async function generateNarrations(segments, config, outputDir) {
             segment.text,
             currentVoiceId,
             elevenlabsKey,
-            config.elevenlabs?.apiUrl
+            config.elevenlabs?.apiUrl,
+            language
           );
           audio = result.audio;
           provider = 'elevenlabs';
@@ -698,8 +709,26 @@ async function main() {
       throw new Error('Script contains no scenes');
     }
 
-    // Generate narrations
-    const results = await generateNarrations(segments, config, outputDir);
+    const language = args.language || config.language || 'en';
+    console.error(`  Language: ${language} → model: ${getElevenLabsModel(language)}`);
+
+    // Validate: storyboard language must match if present
+    const storyboardPath = path.join(process.cwd(), '.demo-maker', 'storyboard.json');
+    if (fs.existsSync(storyboardPath)) {
+      try {
+        const sb = JSON.parse(fs.readFileSync(storyboardPath, 'utf8'));
+        if (sb.language && sb.language !== language) {
+          throw new Error(
+            `Language mismatch: storyboard says "${sb.language}" but narration requested "${language}". ` +
+            `All content must be in a single language. Update storyboard.json or use --language ${sb.language}`
+          );
+        }
+      } catch (e) {
+        if (e.message.includes('Language mismatch')) throw e;
+      }
+    }
+
+    const results = await generateNarrations(segments, config, outputDir, language);
 
     // Output results
     console.log(JSON.stringify({

@@ -2,7 +2,7 @@
 
 **Auto-generate narrated MP4 product demos from your codebase.**
 
-Point it at your project, review the script, hit render. You get 7 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, TikTok, and GIF — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
+Point it at your project, review the script, hit render. You get 6 platform-ready videos — Full, GitHub, Twitter, Product Hunt, Instagram, and TikTok — each with correct dimensions, timing, and narration. Everything runs locally on your machine.
 
 <p align="center">
   <video src="media/demo.mp4" controls width="720">
@@ -119,4 +119,4 @@ Demo Maker reads your Case Study Maker timeline for narrative context. Git Launc
 
 ## License
 
-MIT — free and open source.
+MIT License.

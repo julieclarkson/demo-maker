@@ -22,25 +22,25 @@ export const ProblemScene: React.FC<Props> = ({ colorScheme, durationFrames, isV
   const items = [
     {
       delay: 5,
-      label: "Screen Recorder",
+      label: "Record. Mess up. Restart.",
       icon: "⏺",
-      detail: "fumbling through it...",
+      detail: "take 1… take 2… take 3…",
       bgGradient: "linear-gradient(135deg, #FEF2F2, #FEE2E2)",
       borderColor: "#FECACA",
     },
     {
       delay: 65,
-      label: "Video Editing",
-      icon: "🎬",
-      detail: "not your thing...",
+      label: "Resize Everything",
+      icon: "📐",
+      detail: "square, vertical, gallery…",
       bgGradient: "linear-gradient(135deg, #FFF7ED, #FFEDD5)",
       borderColor: "#FED7AA",
     },
     {
       delay: 125,
-      label: "Your Precious Time",
+      label: "Five Minutes?",
       icon: "⏰",
-      detail: "wasted on this...",
+      detail: "more like five hours…",
       bgGradient: "linear-gradient(135deg, #FEF2F2, #FEE2E2)",
       borderColor: "#FECACA",
     },
@@ -117,7 +117,7 @@ export const ProblemScene: React.FC<Props> = ({ colorScheme, durationFrames, isV
         >
           <div style={{ fontSize: 120 }}>😬</div>
           <div style={{ color: colorScheme.text, fontSize: 34, marginTop: 24, fontFamily: "system-ui", fontWeight: 800 }}>
-            You're a builder, not a video editor.
+            This was supposed to take five minutes.
           </div>
         </div>
       )}

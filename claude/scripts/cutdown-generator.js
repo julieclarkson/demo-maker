@@ -23,7 +23,7 @@ const PLATFORMS = {
     maxDuration: 60,
     keepScenes: -1, // Keep all
     description: '60s - Full version',
-    formats: ['mp4', 'gif']
+    formats: ['mp4']
   },
   youtube: {
     maxDuration: -1, // No limit

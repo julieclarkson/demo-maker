@@ -10,7 +10,35 @@ Present questions using numbered options. User can respond with the number(s) of
 
 ---
 
-## Question 1: Target Platforms (Multi-Select)
+## Question 1: Language
+
+The entire demo — script, narration, captions — must be in a single language. No mixing.
+
+Ask:
+
+```
+What language should the demo be in?
+
+1. English (default)
+2. Other — specify (e.g. French, Spanish, German, Japanese, Portuguese)
+
+Your choice: [1-2]
+```
+
+If user picks 2, ask them to specify the language. Store the ISO 639-1 code (e.g. `en`, `fr`, `es`, `de`, `ja`, `pt`).
+
+**Technical impact:**
+- English (`en`) uses ElevenLabs `eleven_monolingual_v1` (best English quality)
+- Any other language uses `eleven_multilingual_v2` (required for non-English)
+- Scene durations may need adjustment — some languages are 20-30% more verbose than English
+- The script generator must write the entire script in the chosen language
+- Validation will reject any script that mixes languages
+
+Store in context: `strategy.language` (ISO 639-1 code, default `"en"`)
+
+---
+
+## Question 2: Target Platforms (Multi-Select)
 
 Ask:
 
@@ -19,22 +47,21 @@ Which platforms will this demo appear on?
 (Select one or more by number)
 
 1. Full demo (60s, 1920×1080 — the master cut)
-2. GitHub README (60s, 1920×1080 + GIF fallback)
+2. GitHub README (60s, 1920×1080)
 3. Twitter/X (30s, 1280×720 — hook + snippet + CTA)
 4. Product Hunt (45s, 1920×1080 — launch day)
 5. Instagram Reels (30s, 1080×1920 — vertical)
 6. TikTok (30s, 1080×1920 — vertical)
-7. GIF (15s, 800px wide — silent autoplay for READMEs)
-8. All 7 (generate every version)
+7. All 6 (generate every version)
 
-Your choice(s): [1-8]
+Your choice(s): [1-7]
 ```
 
 Store selected platforms in context: `strategy.platforms`
 
 ---
 
-## Question 2: Voice — Listen & Select
+## Question 3: Voice — Listen & Select
 
 This question has two parts: preset preview, then optional custom design.
 
@@ -42,6 +69,27 @@ This question has two parts: preset preview, then optional custom design.
 - `elevenlabs` → full voice preview + narration + voice design
 - `openai` → preset selection by description only (no audio preview)
 - `caption-only` → skip this question entirely; inform user captions will be used
+
+### Bundled Voice (Default)
+
+Demo Maker ships with a default voice sample at `.demo-maker/voice-sample.mp3`. If this file exists and no `voice-lock.json` is present, the narration generator will automatically clone this voice on the first run and lock it — giving every project a consistent narrator out of the box.
+
+If the bundled voice sample exists, present this option first:
+
+```
+Demo Maker includes a default narration voice (young female, casual creative).
+It will be used automatically unless you choose a different one.
+
+1. Use the default voice (recommended — consistent across all projects)
+2. Pick a different preset voice
+3. Design a custom voice from a description
+
+Your choice: [1-3]
+```
+
+If the user picks **1**, skip the rest of Question 2 entirely. The narration generator will clone from `voice-sample.mp3` automatically.
+
+If the user picks **2** or **3**, proceed to Part A or Part B below.
 
 ### Part A: Voice Preset Preview
 
@@ -126,7 +174,7 @@ Do NOT ask the user about visual tier. Remotion is the rendering engine — it p
 
 ---
 
-## Question 3: Color Scheme & Visual Style
+## Question 4: Color Scheme & Visual Style
 
 Ask:
 
@@ -135,13 +183,10 @@ What color scheme and visual style fits your product?
 
 1. Dark mode (dark backgrounds, neon/bright accents — good for dev tools, terminals)
 2. Light & clean (white/light grey backgrounds, subtle colors — good for SaaS, productivity)
-3. Brand colors — I'll pull your primary colors from the project (if available) and build around those
-4. Cinematic / moody (deep contrast, film grain, dramatic lighting — good for AI/creative tools)
+3. Cinematic / moody (deep contrast, film grain, dramatic lighting — good for AI/creative tools)
 
-Your choice: [1-4]
+Your choice: [1-3]
 ```
-
-If user picks 3, attempt to detect brand colors from the project's CSS, config, or assets. If none found, ask for hex codes.
 
 Store in context: `strategy.colorScheme`
 
@@ -191,7 +236,7 @@ Set automatically:
 
 ---
 
-## Question 3: Demo Focus
+## Question 5: Demo Focus
 
 Ask:
 
@@ -210,7 +255,7 @@ Store in context: `strategy.demoFocus`
 
 ---
 
-## Question 4: Case Study Integration (Conditional)
+## Question 6: Case Study Integration (Conditional)
 
 Only ask if `.case-study/` exists and contains a build narrative:
 
@@ -228,6 +273,21 @@ Store in context: `strategy.caseStudyIntegration`
 
 If user chooses option 1 or 3, extract developer quotes from `.case-study/events.json` to use in narration.
 
+**Important: Collect author backstory.** If the user picks option 1 or 3, you need real details to write an authentic script — not generic placeholder narration. Ask follow-up questions:
+
+```
+To write a genuine origin story, I need a few details from you:
+
+1. What specific frustration or moment made you start building this?
+2. Who is this for? (yourself, your team, a type of user?)
+3. What's the one thing you want viewers to feel or take away?
+4. Any memorable moments from the build — breakthroughs, surprises, pivots?
+
+(Short answers are fine — even a sentence each. I'll weave them into the script.)
+```
+
+Use the author's actual words and phrasing where possible. The goal is a script that sounds like *them*, not like a template.
+
 ---
 
 ## Storage
@@ -237,7 +297,8 @@ After all questions are answered, store in context:
 ```json
 {
   "strategy": {
-    "platforms": ["full", "github", "twitter", "producthunt", "instagram", "tiktok", "gif"],
+    "language": "en",
+    "platforms": ["full", "github", "twitter", "producthunt", "instagram", "tiktok"],
     "voice": {
       "preset": "storyteller",
       "customDescription": null,
@@ -263,7 +324,8 @@ Present a summary of choices:
 ```
 Strategy Confirmed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Platforms:      All 7 (Full, GitHub, Twitter, PH, Instagram, TikTok, GIF)
+Language:       English
+Platforms:      All 6 (Full, GitHub, Twitter, PH, Instagram, TikTok)
 Voice:          Storyteller (Arnold) — warm, narrative
 Rendering:      Remotion (motion graphics)
 Color scheme:   Light & clean

@@ -38,11 +38,11 @@
       "embed": "media-attachment",
       "note": "Vertical 1080x1920 — TikTok post"
     },
-    "demo-gif.mp4": {
+    "demo-twitter.mp4-preview": {
       "target": "git-launcher",
-      "outputs": ["README.md", "LAUNCH_KIT/reddit-post.md", "LAUNCH_KIT/hackernews-post.md"],
-      "embed": "inline-preview",
-      "note": "Short looping clip — inline GIF preview in README and text-based platforms"
+      "outputs": ["LAUNCH_KIT/reddit-post.md", "LAUNCH_KIT/hackernews-post.md"],
+      "embed": "media-attachment",
+      "note": "30s Twitter cut doubles as short preview for text-based platforms"
     }
   },
   "pluginRepos": {

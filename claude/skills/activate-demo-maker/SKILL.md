@@ -55,12 +55,7 @@ If the user says **install**, provide setup commands. If the user says **continu
 ```json
 {
   "version": 1,
-  "elevenLabs": {
-    "apiKey": ""
-  },
-  "openai": {
-    "apiKey": ""
-  },
+  "apiKeys": "loaded from .demo-maker/.env — never stored here",
   "voice": {
     "provider": "elevenlabs",
     "voiceId": "",
@@ -80,21 +75,24 @@ If the user says **install**, provide setup commands. If the user says **continu
 4. Create `.demo-maker/narration/` directory for audio clips.
 5. Create `.demo-maker/clips/` directory for user-provided video clips.
 
+5b. **Copy the bundled voice sample** — Demo Maker ships with a default voice (`media/voice-sample.mp3`). If `.demo-maker/voice-sample.mp3` does not already exist, copy it:
+```bash
+cp media/voice-sample.mp3 .demo-maker/voice-sample.mp3
+```
+This gives every project a consistent narration voice out of the box. On the first narration run, the voice will be cloned via ElevenLabs and locked to `voice-lock.json`. Users can replace `voice-sample.mp3` with their own audio to use a different voice.
+
 6. Check if `.gitignore` exists. Append these entries (if not already present):
 ```
 .demo-maker/
 OUTPUT/
 ```
 
-7. Ask the user for their ElevenLabs API key:
-   - "To generate voice narration, paste your ElevenLabs API key (get one at https://elevenlabs.io/api):"
-   - If provided, write it to `.demo-maker/config.json`
-   - If skipped, note that demos will use caption-only mode (still works, just no voice)
+7. Create `.demo-maker/.env` from the `.env.example` template if it doesn't exist. **NEVER ask the user to paste API keys in chat.** Instead, tell them:
+   - "To enable voice narration, open `.demo-maker/.env` in your editor and add your ElevenLabs API key. Get one at https://elevenlabs.io/api"
+   - "Never paste API keys in this chat — edit the .env file directly."
+   - "Without an API key, demos still work in caption-only mode (no voice)."
 
-8. Optionally ask for OpenAI API key as fallback:
-   - "Optional: paste your OpenAI API key for fallback voice generation (or press Enter to skip):"
-
-9. Run preflight checks:
+8. Run preflight checks:
 ```bash
 node scripts/preflight.js
 ```

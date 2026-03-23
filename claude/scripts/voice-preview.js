@@ -61,10 +61,14 @@ function elevenLabsRequest(options, postData) {
   });
 }
 
-async function generatePreview(text, voiceId, settings, apiKey) {
+function getElevenLabsModel(language) {
+  return (!language || language === 'en') ? 'eleven_monolingual_v1' : 'eleven_multilingual_v2';
+}
+
+async function generatePreview(text, voiceId, settings, apiKey, language = 'en') {
   const payload = JSON.stringify({
     text,
-    model_id: 'eleven_multilingual_v2',
+    model_id: getElevenLabsModel(language),
     voice_settings: settings,
   });
 
@@ -145,7 +149,8 @@ async function run() {
     console.error(`  Generating preview: ${preset} (${voice.name})...`);
 
     try {
-      const audio = await generatePreview(text, voice.voiceId, voice.settings, apiKey);
+      const language = args.language || 'en';
+      const audio = await generatePreview(text, voice.voiceId, voice.settings, apiKey, language);
       const outputPath = path.join(outputDir, `preview-${preset}.mp3`);
       fs.writeFileSync(outputPath, audio);
 
