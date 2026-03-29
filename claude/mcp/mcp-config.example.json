@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "demo-maker": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/demo-maker/mcp/cli.js"],
+      "env": {
+        "DEMO_MAKER_MCP_ALLOWED_ROOT": "/ABSOLUTE/PATH/TO/YOUR/APP"
+      }
+    }
+  }
+}

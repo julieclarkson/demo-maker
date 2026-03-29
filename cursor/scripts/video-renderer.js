@@ -33,7 +33,7 @@ function buildConcatFile(scenes, capturesDir, narrationsDir) {
       throw new Error(`Video file not found: ${videoPath}`);
     }
 
-    content += `file '${videoPath}'\n`;
+    content += `file '${videoPath.replace(/'/g, "'\\''")}'\n`;
   }
 
   return content;

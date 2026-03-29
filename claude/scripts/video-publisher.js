@@ -20,7 +20,7 @@
 const { readFileSync, writeFileSync, existsSync, statSync, mkdirSync, symlinkSync } = require('fs');
 const { join, basename, resolve } = require('path');
 const { createInterface } = require('readline');
-const { exec, execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const https = require('https');
 
 const VIDEO_CONFIGS = {
@@ -56,20 +56,22 @@ function askMultiline(prompt) {
 }
 
 function openUrl(url) {
+  const { execFile } = require('child_process');
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'start' : 'xdg-open';
-  exec(`${cmd} "${url}"`);
+  execFile(cmd, [url], () => {});
 }
 
-function openFolder(path) {
+function openFolder(folderPath) {
+  const { execFile } = require('child_process');
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'explorer' : 'xdg-open';
-  exec(`${cmd} "${path}"`);
+  execFile(cmd, [folderPath], () => {});
 }
 
 function copyToClipboard(text) {
   try {
-    execSync('pbcopy', { input: text });
+    execFileSync('pbcopy', [], { input: text });
     return true;
   } catch { return false; }
 }
@@ -103,8 +105,9 @@ function findProjectRoot() {
 }
 
 function detectRepo() {
+  const { execFileSync } = require('child_process');
   try {
-    const remote = execSync('git remote get-url origin 2>/dev/null', { encoding: 'utf-8' }).trim();
+    const remote = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf-8', stdio: 'pipe' }).trim();
     const match = remote.match(/github\.com[:/](.+?)(?:\.git)?$/);
     if (match) return match[1];
   } catch {}
@@ -152,12 +155,13 @@ function extractNarration(scriptContent) {
 }
 
 function generateThumbnail(videoPath, outputPath) {
+  const { execFileSync } = require('child_process');
   try {
-    execSync(`ffmpeg -y -i "${videoPath}" -ss 00:00:02 -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`, { timeout: 15000 });
+    execFileSync('ffmpeg', ['-y', '-i', videoPath, '-ss', '00:00:02', '-vframes', '1', '-q:v', '2', outputPath], { timeout: 15000, stdio: 'pipe' });
     return existsSync(outputPath);
   } catch {
     try {
-      execSync(`ffmpeg -y -i "${videoPath}" -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`, { timeout: 15000 });
+      execFileSync('ffmpeg', ['-y', '-i', videoPath, '-vframes', '1', '-q:v', '2', outputPath], { timeout: 15000, stdio: 'pipe' });
       return existsSync(outputPath);
     } catch { return false; }
   }
@@ -207,9 +211,9 @@ async function publishGitHub(opts, runDir, videosToUpload, projectName) {
     if (!repo) { console.error('  No repo specified. Aborting.'); process.exit(1); }
   }
 
-  // Verify gh CLI
+  const { execFileSync: ghCheck } = require('child_process');
   try {
-    execSync('gh auth status 2>&1', { encoding: 'utf-8' });
+    ghCheck('gh', ['auth', 'status'], { encoding: 'utf-8', stdio: 'pipe' });
   } catch {
     console.error('  Error: gh CLI not authenticated. Run: gh auth login');
     process.exit(1);
@@ -232,19 +236,18 @@ async function publishGitHub(opts, runDir, videosToUpload, projectName) {
   console.log('  Uploading videos to GitHub Release...');
   console.log('');
 
-  // Build the asset list
-  const assetArgs = videosToUpload.map(v => `"${v.path}"`).join(' ');
+  const { execFileSync } = require('child_process');
+  const assetPaths = videosToUpload.map(v => v.path);
 
   try {
-    const cmd = `gh release create "${tag}" ${assetArgs} --repo "${repo}" --title "${releaseName}" --notes "${releaseBody.replace(/"/g, '\\"')}" --latest=false`;
-    execSync(cmd, { encoding: 'utf-8', stdio: 'pipe', timeout: 300000 });
+    const ghArgs = ['release', 'create', tag, ...assetPaths, '--repo', repo, '--title', releaseName, '--notes', releaseBody, '--latest=false'];
+    execFileSync('gh', ghArgs, { encoding: 'utf-8', stdio: 'pipe', timeout: 300000 });
   } catch (err) {
-    // Release tag might already exist
     if (err.stderr && err.stderr.includes('already exists')) {
       console.log(`  Release ${tag} already exists. Uploading assets to it...`);
       for (const v of videosToUpload) {
         try {
-          execSync(`gh release upload "${tag}" "${v.path}" --repo "${repo}" --clobber`, { encoding: 'utf-8', stdio: 'pipe', timeout: 120000 });
+          execFileSync('gh', ['release', 'upload', tag, v.path, '--repo', repo, '--clobber'], { encoding: 'utf-8', stdio: 'pipe', timeout: 120000 });
         } catch (uploadErr) {
           console.error(`  Failed to upload ${v.file}: ${uploadErr.message}`);
         }
@@ -254,9 +257,8 @@ async function publishGitHub(opts, runDir, videosToUpload, projectName) {
     }
   }
 
-  // Fetch the release to get asset URLs
   console.log('  Fetching download URLs...');
-  const releaseJson = execSync(`gh release view "${tag}" --repo "${repo}" --json assets`, { encoding: 'utf-8', timeout: 15000 });
+  const releaseJson = execFileSync('gh', ['release', 'view', tag, '--repo', repo, '--json', 'assets'], { encoding: 'utf-8', timeout: 15000 });
   const release = JSON.parse(releaseJson);
 
   const results = {

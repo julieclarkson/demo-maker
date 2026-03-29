@@ -29,11 +29,9 @@ const DEFAULT_CONFIG = {
     includeCaptions: true
   },
   elevenlabs: {
-    apiKey: null, // User to set
     apiUrl: 'https://api.elevenlabs.io'
   },
   openai: {
-    apiKey: null, // Optional fallback
     apiUrl: 'https://api.openai.com/v1'
   }
 };
@@ -185,8 +183,8 @@ async function checkAPIKey() {
     // Check .env file for API keys (preferred, more secure)
     const loadEnv = require('./load-env');
     const env = loadEnv(PROJECT_ROOT);
-    const hasElevenLabs = !!(env.ELEVENLABS_API_KEY || config.elevenlabs?.apiKey);
-    const hasOpenAI = !!(env.OPENAI_API_KEY || config.openai?.apiKey);
+    const hasElevenLabs = !!env.ELEVENLABS_API_KEY;
+    const hasOpenAI = !!env.OPENAI_API_KEY;
 
     if (hasElevenLabs) {
       return {
@@ -210,7 +208,7 @@ async function checkAPIKey() {
       ok: true,
       configured: false,
       provider: 'caption-only',
-      warning: 'No API key configured. Narration will use caption-only mode. Set ELEVENLABS_API_KEY or OPENAI_API_KEY in ~/.demo-maker/config.json',
+      warning: 'No API key configured. Narration will use caption-only mode. Add ELEVENLABS_API_KEY or OPENAI_API_KEY to .demo-maker/.env',
       message: 'API keys not configured. Running in caption-only mode.'
     };
   } catch (err) {

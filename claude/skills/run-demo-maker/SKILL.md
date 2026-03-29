@@ -74,13 +74,13 @@ Generate voice audio via ElevenLabs (or fallback). Output to `.demo-maker/narrat
 
 Read and execute: `$DM_ROOT/prompts/07-RENDER.md`
 
-Assemble captures + narration into final MP4 with captions and watermark. Output to `OUTPUT/{run-id}/demo-full.mp4`.
+Assemble captures + narration into final MP4 with captions and watermark. Output to `OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4`.
 
 ## Step 9: Generate Cut-Downs
 
 Read and execute: `$DM_ROOT/prompts/08-CUTDOWNS.md`
 
-Create platform-specific versions (Twitter 30s, Product Hunt 45s, GitHub 60s + GIF). Output to `OUTPUT/{run-id}/`.
+Create platform-specific versions (Twitter 30s, Product Hunt 45s, GitHub 60s + GIF). Output to `OUTPUTS_DEMO_MAKER/{run-id}/`.
 
 ## Step 10: Integrate
 
@@ -90,8 +90,8 @@ Push demo into Case Study Maker and Git Launcher ecosystems. Offer to apply asse
 
 ## Rules
 
-- Create `OUTPUT/{run-id}/` folder at project root for ALL outputs (where run-id is `demo-{YYYYMMDD}-{HHmmss}`)
-- NEVER overwrite files outside `OUTPUT/` without asking
+- Create `OUTPUTS_DEMO_MAKER/{run-id}/` folder at project root for ALL outputs (where run-id is `demo-{YYYYMMDD}-{HHmmss}`)
+- NEVER overwrite files outside `OUTPUTS_DEMO_MAKER/` without asking
 - If a script/step fails, skip it and continue (note what was skipped)
 - Execute steps IN ORDER
 - Always present script for user approval before proceeding to capture

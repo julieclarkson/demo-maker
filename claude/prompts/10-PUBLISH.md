@@ -27,7 +27,7 @@ Upload demo videos and get embeddable URLs.
 Find the most recent demo run directory:
 
 ```
-ls -td OUTPUT/demo-* | head -1
+ls -td OUTPUTS_DEMO_MAKER/demo-* | head -1
 ```
 
 Confirm with the user which run to publish if multiple exist.
@@ -37,13 +37,13 @@ Confirm with the user which run to publish if multiple exist.
 **GitHub Release (default):**
 
 ```bash
-node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --repo "owner/repo"
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUTS_DEMO_MAKER/demo-{timestamp} --project "{ProjectName}" --repo "owner/repo"
 ```
 
 **YouTube (manual):**
 
 ```bash
-node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/demo-{timestamp} --project "{ProjectName}" --method youtube
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUTS_DEMO_MAKER/demo-{timestamp} --project "{ProjectName}" --method youtube
 ```
 
 Arguments:
@@ -66,7 +66,7 @@ That's it. No manual steps.
 
 **Phase 1 — Package generation:**
 
-The script creates `OUTPUT/demo-{timestamp}/youtube-upload/` with numbered subfolders:
+The script creates `OUTPUTS_DEMO_MAKER/demo-{timestamp}/youtube-upload/` with numbered subfolders:
 
 ```
 youtube-upload/

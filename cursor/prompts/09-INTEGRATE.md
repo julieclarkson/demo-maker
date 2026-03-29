@@ -9,7 +9,7 @@ Upload demo videos to a GitHub Release and embed them into Case Study Maker page
 After Step 8 (Cutdowns) completes, ask:
 
 ```
-Demo generation complete! 6 platform-ready videos are in OUTPUT/{run-id}/.
+Demo generation complete! 6 platform-ready videos are in OUTPUTS_DEMO_MAKER/{run-id}/.
 
 Would you like to publish these demos and integrate them into your
 case study pages and launch kit? This will:
@@ -23,7 +23,7 @@ Everything is automated — no manual uploads or copy-pasting.
 [yes / no]
 ```
 
-If **no** → skip to the Summary Report (Part F). Local files remain in `OUTPUT/`.
+If **no** → skip to the Summary Report (Part F). Local files remain in `OUTPUTS_DEMO_MAKER/`.
 If **yes** → proceed below.
 
 ---
@@ -42,7 +42,7 @@ If not detected, ask the user for the GitHub repo (`owner/name` format).
 ### Step 2: Run the publisher
 
 ```bash
-node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/{run-id} \
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUTS_DEMO_MAKER/{run-id} \
   --project "{ProjectName}" \
   --repo "{owner/repo}"
 ```
@@ -70,7 +70,7 @@ Release page: https://github.com/{owner}/{repo}/releases/tag/{tag}
 If the user specifically asks to publish to YouTube instead, run:
 
 ```bash
-node "$DM_ROOT/scripts/video-publisher.js" OUTPUT/{run-id} \
+node "$DM_ROOT/scripts/video-publisher.js" OUTPUTS_DEMO_MAKER/{run-id} \
   --project "{ProjectName}" \
   --method youtube
 ```
@@ -93,7 +93,7 @@ Add a new event to `.case-study/events.json`:
   "timestamp": "2026-03-10T14:32:00Z",
   "metadata": {
     "platforms": ["full", "github", "twitter", "producthunt", "instagram", "tiktok", "gif"],
-    "videoUrls": "OUTPUT/{run-id}/video-urls.json",
+    "videoUrls": "OUTPUTS_DEMO_MAKER/{run-id}/video-urls.json",
     "method": "github-release"
   }
 }
@@ -105,7 +105,7 @@ Copy the demo video into the same directory as the generated HTML pages so it ca
 
 ```bash
 mkdir -p OUTPUTS/videos
-cp OUTPUT/{run-id}/demo-full.mp4 OUTPUTS/videos/demo-full.mp4
+cp OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4 OUTPUTS/videos/demo-full.mp4
 ```
 
 This ensures the video works when the pages are deployed — no external URL dependencies.
@@ -165,7 +165,7 @@ If the project has a `README.md`, add or update the demo section:
 ```markdown
 ## Demo
 
-[![Watch demo](OUTPUT/{run-id}/thumbnails/thumbnail.png)]({videos.demo-github.url})
+[![Watch demo](OUTPUTS_DEMO_MAKER/{run-id}/thumbnails/thumbnail.png)]({videos.demo-github.url})
 
 Made with [Demo Maker](https://github.com/julieclarkson/demo-maker).
 ```
@@ -184,7 +184,7 @@ If `git-launch/LAUNCH_KIT/` exists, update each platform post with its matching 
 | `demo-twitter.mp4` | `hackernews-post.md` | `**Demo preview:** [demo-twitter.mp4]({url})` |
 | `demo-github.mp4` | `devto-post.md` | Markdown video link |
 
-For each file: check it exists, find the local path reference (e.g. `OUTPUT/demo-*/demo-twitter.mp4`), replace with the published URL from `video-urls.json`.
+For each file: check it exists, find the local path reference (e.g. `OUTPUTS_DEMO_MAKER/demo-*/demo-twitter.mp4`), replace with the published URL from `video-urls.json`.
 
 Show progress:
 ```
@@ -249,7 +249,7 @@ Integrations:
   Case Study Maker:  [embedded in marketing + portfolio / not installed]
   Git Launcher:      [embedded in 4 launch kit posts / not installed]
 
-Video URLs saved to: OUTPUT/{run-id}/video-urls.json
+Video URLs saved to: OUTPUTS_DEMO_MAKER/{run-id}/video-urls.json
 
 Next steps:
   • Case Study Maker: /generate (pages will auto-embed future demos)

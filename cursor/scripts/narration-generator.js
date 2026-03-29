@@ -465,8 +465,8 @@ async function generateNarrations(segments, config, outputDir, language = 'en') 
   // Load API keys from .env file (never from config.json, never visible to AI)
   const loadEnv = require('./load-env');
   const env = loadEnv(process.cwd());
-  const elevenlabsKey = env.ELEVENLABS_API_KEY || config.elevenlabs?.apiKey || '';
-  const openaiKey = env.OPENAI_API_KEY || config.openai?.apiKey || '';
+  const elevenlabsKey = env.ELEVENLABS_API_KEY || '';
+  const openaiKey = env.OPENAI_API_KEY || '';
 
   if (!elevenlabsKey && !openaiKey) {
     results.provider = 'caption-only';

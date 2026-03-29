@@ -79,7 +79,7 @@ ffmpeg \
   -c:v libx264 -preset medium -crf 23 \
   -c:a aac -b:a 128k \
   -y \
-  OUTPUT/{run-id}/demo-full.mp4
+  OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4
 ```
 
 **Codec specs:**
@@ -177,7 +177,7 @@ drawtext=\
 After rendering completes, generate:
 
 ```
-OUTPUT/{run-id}/
+OUTPUTS_DEMO_MAKER/{run-id}/
 ├── demo-full.mp4              (main video, 60s)
 ├── demo-full-with-captions.mp4 (if caption-only mode)
 ├── captions/
@@ -230,7 +230,7 @@ Progress:
 ✓ Watermark added
 ✓ Thumbnail extracted
 
-Output:         OUTPUT/{run-id}/demo-full.mp4
+Output:         OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4
 Duration:       60s
 File size:      18.4 MB
 Audio:          128kbps AAC
@@ -267,7 +267,7 @@ If `video-renderer.js` fails, run FFmpeg directly:
 
 ```bash
 RUN_ID="demo-$(date +%Y%m%d-%H%M%S)"
-OUTPUT_DIR="OUTPUT/$RUN_ID"
+OUTPUT_DIR="OUTPUTS_DEMO_MAKER/$RUN_ID"
 mkdir -p "$OUTPUT_DIR"
 
 ffmpeg \

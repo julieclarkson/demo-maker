@@ -157,20 +157,13 @@ Store in context: `strategy.voice.preset`, `strategy.voice.customDescription` (i
 
 ## Visual Rendering (Auto-Set)
 
-Do NOT ask the user about visual tier. Remotion is the rendering engine — it powers all video output. Set automatically:
+Do NOT ask the user about visual tier. Remotion is the rendering engine — it powers all video output with ElevenLabs narration. Set automatically:
 
 ```json
 {
-  "strategy.visualTier": "remotion",
-  "strategy.aiVideoProvider": null
+  "strategy.visualTier": "remotion"
 }
 ```
-
-<!-- FUTURE DEV: Add AI video clip integration (Google Veo 3, Runway Gen-3) as an
-     optional enhancement on top of Remotion. When implemented, add a question here
-     that only appears if an AI video API key was validated in preflight (Step 0).
-     Tiers would be: Remotion only (default) | Remotion + 1-2 AI hero clips | Full AI.
-     See 00-SETUP.md Question: AI Video Setup for the key configuration flow. -->
 
 ---
 
@@ -305,7 +298,6 @@ After all questions are answered, store in context:
       "voiceId": "VR6AewLTigWG4xSOukaG"
     },
     "visualTier": "remotion",
-    "aiVideoProvider": null,
     "colorScheme": "light",
     "animationStyle": "motion-graphics",
     "dynamism": "moderate",

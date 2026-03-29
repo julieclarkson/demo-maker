@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# apply-demo.sh - Copy demo assets from OUTPUT/{run-id} to project root
+# apply-demo.sh - Copy demo assets from OUTPUTS_DEMO_MAKER/{run-id} to project root
 # Usage: ./apply-demo.sh [--force]
 
 set -e
 
 FORCE=false
-OUTPUT_BASE="OUTPUT"
+OUTPUT_BASE="OUTPUTS_DEMO_MAKER"
 PROJECT_ROOT="${PWD}"
 
 # Find the most recent run folder (latest by timestamp)

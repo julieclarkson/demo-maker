@@ -26,7 +26,7 @@
 const { readFileSync, writeFileSync, existsSync, statSync, mkdirSync, symlinkSync, readdirSync } = require('fs');
 const { join, basename, resolve } = require('path');
 const { createInterface } = require('readline');
-const { exec, execSync } = require('child_process');
+const { execFile, execFileSync } = require('child_process');
 const https = require('https');
 
 const VIDEO_CONFIGS = {
@@ -64,18 +64,18 @@ function askMultiline(prompt) {
 function openUrl(url) {
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'start' : 'xdg-open';
-  exec(`${cmd} "${url}"`);
+  execFile(cmd, [url], () => {});
 }
 
-function openFolder(path) {
+function openFolder(folderPath) {
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'explorer' : 'xdg-open';
-  exec(`${cmd} "${path}"`);
+  execFile(cmd, [folderPath], () => {});
 }
 
 function copyToClipboard(text) {
   try {
-    execSync('pbcopy', { input: text });
+    execFileSync('pbcopy', [], { input: text });
     return true;
   } catch {
     return false;
@@ -150,17 +150,13 @@ function extractNarration(scriptContent) {
 
 function generateThumbnail(videoPath, outputPath) {
   try {
-    execSync(
-      `ffmpeg -y -i "${videoPath}" -ss 00:00:02 -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`,
-      { timeout: 15000 }
-    );
+    execFileSync('ffmpeg', ['-y', '-i', videoPath, '-ss', '00:00:02', '-vframes', '1', '-q:v', '2', outputPath],
+      { timeout: 15000, stdio: 'pipe' });
     return existsSync(outputPath);
   } catch {
     try {
-      execSync(
-        `ffmpeg -y -i "${videoPath}" -vframes 1 -q:v 2 "${outputPath}" 2>/dev/null`,
-        { timeout: 15000 }
-      );
+      execFileSync('ffmpeg', ['-y', '-i', videoPath, '-vframes', '1', '-q:v', '2', outputPath],
+        { timeout: 15000, stdio: 'pipe' });
       return existsSync(outputPath);
     } catch {
       return false;

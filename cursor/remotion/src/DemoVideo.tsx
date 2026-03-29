@@ -15,7 +15,6 @@ import { TurnScene } from "./scenes/TurnScene";
 import { WorkflowScene } from "./scenes/WorkflowScene";
 import { OutputScene } from "./scenes/OutputScene";
 import { CTAScene } from "./scenes/CTAScene";
-import { AIClipScene } from "./scenes/AIClipScene";
 import { StoryboardScene } from "./scenes/StoryboardScene";
 import { Watermark } from "./components/Watermark";
 import { CaptionTrack } from "./components/CaptionTrack";
@@ -26,12 +25,6 @@ interface ColorScheme {
   secondary: string;
   text: string;
   muted: string;
-}
-
-interface AIClip {
-  sceneId: number;
-  videoPath: string;
-  provider: "veo3" | "runway";
 }
 
 interface StoryboardVisual {
@@ -56,7 +49,6 @@ interface DemoVideoProps {
   storyboard: { scenes: StoryboardSceneData[]; projectName?: string } | null;
   narrationDir: string | null;
   capturesDir: string | null;
-  aiClips: AIClip[];
   colorScheme: ColorScheme;
   animationStyle: "motion-graphics" | "cinematic" | "developer-authentic";
   availableNarration?: number[];
@@ -153,7 +145,6 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
   platform,
   storyboard,
   narrationDir,
-  aiClips,
   colorScheme,
   animationStyle,
   availableNarration = [],
@@ -221,12 +212,9 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
     });
   }
 
-  const getAIClip = (sceneId: number) => aiClips.find((c) => c.sceneId === sceneId);
-
   return (
     <AbsoluteFill style={{ backgroundColor: colorScheme.background }}>
       {timeline.map((scene, index) => {
-        const aiClip = getAIClip(scene.id);
         const isFirst = index === 0;
         const isLast = index === timeline.length - 1;
 
@@ -238,9 +226,7 @@ export const DemoVideo: React.FC<DemoVideoProps> = ({
               fadeOut={!isLast}
               fadeFrames={FADE_FRAMES}
             >
-              {aiClip ? (
-                <AIClipScene videoPath={aiClip.videoPath} provider={aiClip.provider} />
-              ) : scene.visual?.type === "text_card" ? (
+              {scene.visual?.type === "text_card" ? (
                 <StoryboardScene
                   colorScheme={colorScheme}
                   visual={scene.visual}

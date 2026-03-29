@@ -28,10 +28,10 @@ Execute these steps **IN ORDER**. Each step is defined in its own prompt file an
 - At the end, report which steps completed and which were skipped
 
 ### Output Directory
-- All outputs go to `OUTPUT/{run-id}/` in the project root
-- Each demo run gets a unique timestamped subfolder: `OUTPUT/demo-{YYYYMMDD}-{HHmmss}/`
+- All outputs go to `OUTPUTS_DEMO_MAKER/{run-id}/` in the project root
+- Each demo run gets a unique timestamped subfolder: `OUTPUTS_DEMO_MAKER/demo-{YYYYMMDD}-{HHmmss}/`
 - This prevents overwriting old demos and lets users compare different options
-- Never overwrite files outside `OUTPUT/` without explicit user confirmation
+- Never overwrite files outside `OUTPUTS_DEMO_MAKER/` without explicit user confirmation
 
 ### Configuration
 - **Step 0 handles all setup**: directory creation, config loading, API key validation
@@ -150,7 +150,7 @@ Example:
 ## End of Workflow
 
 At the very end (after Step 8 completes):
-1. List all generated files in the timestamped `OUTPUT/{run-id}/` directory
+1. List all generated files in the timestamped `OUTPUTS_DEMO_MAKER/{run-id}/` directory
 2. Show file sizes and duration
 3. Offer to preview the full demo
 4. Offer to apply changes to the project via `bash scripts/apply-demo.sh` (finds latest run folder)

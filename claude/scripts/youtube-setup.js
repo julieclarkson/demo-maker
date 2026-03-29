@@ -9,7 +9,7 @@
  *   node shared/scripts/youtube-setup.js
  */
 
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const { createInterface } = require('readline');
 
 function ask(prompt) {
@@ -22,7 +22,7 @@ function ask(prompt) {
 function openUrl(url) {
   const cmd = process.platform === 'darwin' ? 'open' :
     process.platform === 'win32' ? 'start' : 'xdg-open';
-  exec(`${cmd} "${url}"`);
+  execFile(cmd, [url], () => {});
 }
 
 async function main() {
@@ -46,7 +46,7 @@ async function main() {
   if (ready.toLowerCase() === 'y') {
     console.log('');
     console.log('  You\'re all set! To publish demos, run:');
-    console.log('    node shared/scripts/youtube-uploader.js OUTPUT/demo-XXXXXXXX-XXXXXX --project "YourProject"');
+    console.log('    node shared/scripts/youtube-uploader.js OUTPUTS_DEMO_MAKER/demo-XXXXXXXX-XXXXXX --project "YourProject"');
     console.log('');
   } else {
     console.log('');

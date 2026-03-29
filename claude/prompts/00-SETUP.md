@@ -57,11 +57,6 @@ Demo Maker — Preflight
 
 Voice Narration
   ElevenLabs:  ✓ configured     → voice preview, narration, voice design
-  OpenAI TTS:  ✗ not set        → fallback narration (simpler voices)
-
-AI Video (optional — most users skip this)
-  Google Veo 3:  ✗ not set      → cinematic AI video clips
-  Runway Gen-3:  ✗ not set      → AI video clips
 
 Fallback: caption-only mode is always available (no API keys needed)
 ```
@@ -132,25 +127,6 @@ ElevenLabs setup:
 Take your time — I'll wait.
 ```
 
-### Question: AI Video Setup (Conditional)
-
-Only ask if the user has already configured voice narration (not caption-only). AI video is a power feature — frame it as optional:
-
-```
-AI video clips add cinematic flair (establishing shots, transitions).
-Most demos look great without them. Want to set up AI video?
-
-1. Yes — I have a Google (Veo 3) API key
-2. Yes — I have a Runway Gen-3 API key
-3. Skip — use motion graphics and screen recordings only (recommended)
-
-Your choice: [1-3]
-```
-
-If they pick 1 or 2, follow the same paste/1Password/env-var sub-flow.
-
-If they pick 3, confirm: "Motion graphics mode — clean, fast, no API cost."
-
 ---
 
 ## 5. Validate Configured Keys
@@ -183,14 +159,6 @@ Or:
 Your choice: [1-3]
 ```
 
-### OpenAI Validation
-
-Call the `/v1/models` endpoint and check for `tts-1` in the response.
-
-### Veo 3 / Runway Validation
-
-Call a lightweight endpoint to confirm the key is valid. Do not generate any content.
-
 ---
 
 ## 6. Capabilities Summary
@@ -202,7 +170,7 @@ Demo Maker — Ready
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Voice:     ElevenLabs ✓  (voice preview + narration)
-AI Video:  Skipped        (using motion graphics)
+Visuals:   Remotion       (React-powered motion graphics)
 Fallback:  Caption-only   (if voice fails mid-run)
 
 Your keys are stored in .demo-maker/.env
@@ -229,10 +197,6 @@ Save the validated state in context so downstream steps don't re-check:
       "keyValid": true,
       "tier": "free",
       "charactersRemaining": 8420
-    },
-    "aiVideo": {
-      "provider": null,
-      "keyValid": false
     },
     "fallback": "caption-only",
     "envPath": ".demo-maker/.env",

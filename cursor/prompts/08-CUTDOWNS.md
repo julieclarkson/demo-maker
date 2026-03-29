@@ -105,9 +105,9 @@ For each platform, run:
 ```bash
 node scripts/generate-cutdown.js \
   --platform twitter \
-  --master OUTPUT/{run-id}/demo-full.mp4 \
+  --master OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4 \
   --storyboard .demo-maker/storyboard.json \
-  --output OUTPUT/{run-id}/demo-twitter.mp4
+  --output OUTPUTS_DEMO_MAKER/{run-id}/demo-twitter.mp4
 ```
 
 Script behavior:
@@ -138,8 +138,8 @@ GitHub READMEs often use GIF previews for inline viewing (avoids autoplay, small
 
 ```bash
 node scripts/mp4-to-gif.js \
-  --input OUTPUT/{run-id}/demo-full.mp4 \
-  --output OUTPUT/{run-id}/demo-github.gif \
+  --input OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4 \
+  --output OUTPUTS_DEMO_MAKER/{run-id}/demo-github.gif \
   --fps 10 \
   --scale 1280:-1
 ```
@@ -168,7 +168,7 @@ Or [watch the full video](demo-github.mp4).
 After all cutdowns complete:
 
 ```
-OUTPUT/{run-id}/
+OUTPUTS_DEMO_MAKER/{run-id}/
 ├── demo-full.mp4                 (60s master)
 ├── demo-full-with-captions.mp4   (if caption mode)
 ├── demo-twitter.mp4              (30s)
@@ -221,7 +221,7 @@ cp demo-output/thumbnails/thumbnail-twitter.png \
 
 ```bash
 node scripts/generate-cutdowns.js \
-  --master OUTPUT/{run-id}/demo-full.mp4 \
+  --master OUTPUTS_DEMO_MAKER/{run-id}/demo-full.mp4 \
   --storyboard .demo-maker/storyboard.json \
   --platforms twitter,producthunt,github,youtube
 ```
@@ -332,11 +332,11 @@ Update context:
 ✅ Platform Cutdowns Complete
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Generated:
-├── Twitter/X   (30s)  → OUTPUT/{run-id}/demo-twitter.mp4
-├── Product Hunt (45s) → OUTPUT/{run-id}/demo-producthunt.mp4
-├── GitHub      (60s)  → OUTPUT/{run-id}/demo-github.mp4
-│                        + OUTPUT/{run-id}/demo-github.gif
-└── Captions    (all)  → OUTPUT/{run-id}/captions/
+├── Twitter/X   (30s)  → OUTPUTS_DEMO_MAKER/{run-id}/demo-twitter.mp4
+├── Product Hunt (45s) → OUTPUTS_DEMO_MAKER/{run-id}/demo-producthunt.mp4
+├── GitHub      (60s)  → OUTPUTS_DEMO_MAKER/{run-id}/demo-github.mp4
+│                        + OUTPUTS_DEMO_MAKER/{run-id}/demo-github.gif
+└── Captions    (all)  → OUTPUTS_DEMO_MAKER/{run-id}/captions/
 
 Ready to proceed to ecosystem integration (Step 9)?
 ```

@@ -92,22 +92,28 @@ See `cursor/README.md` or `claude/README.md` for full documentation.
 
 **Built-in safeguards:**
 
-- **API keys in `.env` only** — keys are stored in `.demo-maker/.env` and loaded at runtime via `load-env.js`. Keys never appear in `config.json`, AI context, or generated output.
-- **1Password support** — use `op read` to inject keys at runtime without writing them to disk
-- **SSRF prevention** — capture URLs are restricted to `localhost`, `127.0.0.1`, and `file://` only
-- **Selector validation** — Playwright selectors are checked for injection characters (`<`, `>`, `;`)
-- **Credential redaction** — captured screenshots are scanned for visible credentials before rendering
-- **`.gitignore` enforced** — `.demo-maker/`, `OUTPUT/`, and `.env` are added to `.gitignore` during setup
+- **API keys in `.env` only** — keys load from `.demo-maker/.env` at runtime via `load-env.js`. No fallback to `config.json`. Keys never appear in AI context or generated output.
+- **No shell injection** — all subprocess calls use `execFile`/`execFileSync` with argument arrays. No user-controlled data touches a shell interpreter.
+- **API keys in headers only** — external API keys are sent via HTTP headers, never in URL query strings.
+- **SSRF prevention** — capture URLs are restricted to `localhost`, `127.0.0.1`, and `file://` only.
+- **HTML escaping** — template text content runs through `escapeHtml()`. Inline JSON uses `\u003c` encoding to prevent `</script>` breakout.
+- **Selector validation** — Playwright selectors are checked for injection characters (`<`, `>`, `;`).
+- **Redirect limits** — HTTP redirect following is bounded (max 5 hops) to prevent infinite loops.
+- **FFmpeg path escaping** — file paths in concat demuxer files are single-quote-escaped to prevent path injection.
+- **`.gitignore` enforced** — `.demo-maker/`, `OUTPUTS_DEMO_MAKER/`, and `.env` are added to `.gitignore` during setup.
+- **MCP (stdio) opt-in** — the `mcp/` folder runs a Model Context Protocol server over **stdio only** (no HTTP/SSE listener). Tools are read-only wrappers around existing Demo Maker logic: project detection, redacted `config.json`, and bundled defaults. All project paths are confined under `DEMO_MAKER_MCP_ALLOWED_ROOT` or the server process cwd at startup (no path traversal). The server does **not** read `.env`, execute shell commands, or invoke other MCP servers. Tool outputs are redacted, size-capped, and minimally scrubbed for delimiter-style lines — still treat them as untrusted data in the host model. Pin `@modelcontextprotocol/sdk` to the version in `package.json` and run `npm install` in the plugin directory after clone. See `mcp/mcp-config.example.json`.
 
 **Your responsibility:**
 
-- **Manage IDE scope and permissions.** Demo Maker requires several operations outside the sandbox: Playwright Chromium download (Google CDN), ElevenLabs narration (`api.elevenlabs.io`), Remotion render (headless Chrome), GitHub publish (`gh` CLI). Cursor and Claude will request expanded permissions for each. Review every prompt and approve only what you understand.
+- **Manage IDE scope and permissions.** Demo Maker requires several operations outside the sandbox: Playwright Chromium download (Google CDN), ElevenLabs narration (`api.elevenlabs.io`), Remotion render (headless Chrome), GitHub publish (`gh` CLI). Cursor and Claude will request expanded permissions for each. Review every prompt and approve only what you understand. If you enable the optional MCP server in your AI client, treat it like any other local tool host: do not chain it with untrusted MCP servers in a way that lets one server exfiltrate another’s context, and keep `DEMO_MAKER_MCP_ALLOWED_ROOT` aligned with the repo you intend to expose.
 - **Store API keys securely.** Use `.demo-maker/.env` (gitignored) or a secrets manager like 1Password CLI. Never paste keys into chat or config files.
 - **Install system dependencies yourself.** Run `npm install`, `npx playwright install chromium`, and `brew install ffmpeg` directly in your terminal — not through the AI agent — to avoid unnecessary sandbox escalation.
 
+All security changes are tracked in `SECURITY_LOG.md`.
+
 ## Companion Plugins
 
-Demo Maker is the second step in a three-plugin workflow:
+Demo Maker is part of a three-plugin workflow:
 
 1. [Case Study Maker](https://github.com/julieclarkson/case-study-maker) — Capture build decisions and generate case studies
 2. **Demo Maker** (this plugin) — Generate narrated video demos from your codebase
@@ -117,6 +123,19 @@ Demo Maker reads your Case Study Maker timeline for narrative context. Git Launc
 
 **Install order:** Case Study Maker → Demo Maker → Git Launcher
 
+## Legal
+
+Published by **Jacobus Company LLC** (dba **Superfly Web Designs**), United States.
+
+- [LICENSE](LICENSE) — MIT License (copyright Jacobus Company LLC)
+- [Terms of Service](https://julieclarkson.com/terms.html) — ([repo copy](TERMS_OF_SERVICE.md))
+- [Privacy Policy](https://julieclarkson.com/privacy.html) — ([repo copy](PRIVACY_POLICY.md))
+- [Liability Waiver](https://julieclarkson.com/liability.html) — ([repo copy](LIABILITY_WAIVER.md))
+
+The Software is provided "as is." You are responsible for reviewing generated content, managing credentials, and IDE permissions. The hosted pages above are the canonical human-readable legal documents.
+
 ## License
 
-MIT License.
+MIT License. See [LICENSE](LICENSE).
+
+Copyright (c) 2026 Jacobus Company LLC (dba Superfly Web Designs).

@@ -25,7 +25,7 @@ Demo Maker reads your finished codebase, understands the user flow, and produces
 ### Output
 
 ```
-OUTPUT/demo-{timestamp}/
+OUTPUTS_DEMO_MAKER/demo-{timestamp}/
 ├── demo-full.mp4            60s full walkthrough
 ├── demo-github.mp4          60s for README
 ├── demo-twitter.mp4         30s hook for Twitter/X
@@ -147,7 +147,29 @@ Demo Maker requires **several operations outside the standard sandbox**. Here's 
 **Tips:**
 - Run `npm install` and `npx playwright install chromium` directly in your terminal to avoid sandbox issues
 - FFmpeg must be installed system-wide (`brew install ffmpeg`) — this cannot be done through the AI agent
-- Your ElevenLabs API key is stored locally in `.demo-maker/config.json` and never sent anywhere except the ElevenLabs API
+- Your ElevenLabs API key is stored locally in `.demo-maker/.env` (gitignored) and never sent anywhere except the ElevenLabs API
+
+---
+
+## Security
+
+**Built-in safeguards:**
+
+- **API keys in `.env` only** — keys load from `.demo-maker/.env` at runtime via `load-env.js`. No fallback to `config.json`. Keys never appear in AI context or generated output.
+- **No shell injection** — all subprocess calls use `execFile`/`execFileSync` with argument arrays (no string interpolation through a shell interpreter).
+- **SSRF prevention** — capture URLs restricted to `localhost`, `127.0.0.1`, and `file://` only.
+- **HTML escaping** — template text content runs through `escapeHtml()`. Inline JSON uses `\u003c` encoding to prevent `</script>` breakout.
+- **Redirect limits** — HTTP redirect following is bounded (max 5 hops) to prevent infinite loops.
+- **FFmpeg path escaping** — file paths in concat demuxer files are single-quote-escaped to prevent path injection.
+- **`.gitignore` enforced** — `.demo-maker/`, `OUTPUTS_DEMO_MAKER/`, and `.env` are ignored during setup.
+
+**Your responsibility:**
+
+- Store API keys in `.demo-maker/.env` or a secrets manager. Never paste keys in chat.
+- Review IDE permission prompts carefully before approving.
+- Install system dependencies (`ffmpeg`, `playwright`) directly in your terminal.
+
+All security changes are tracked in `SECURITY_LOG.md` at the project root.
 
 ---
 
@@ -199,6 +221,19 @@ claude/       Claude plugin (skills, commands, prompts, scripts, Remotion projec
 
 ---
 
+## Legal
+
+Published by **Jacobus Company LLC** (dba **Superfly Web Designs**), United States.
+
+- [LICENSE](LICENSE) — MIT License (copyright Jacobus Company LLC)
+- [Terms of Service](https://julieclarkson.com/terms.html) — ([repo copy](TERMS_OF_SERVICE.md))
+- [Privacy Policy](https://julieclarkson.com/privacy.html) — ([repo copy](PRIVACY_POLICY.md))
+- [Liability Waiver](https://julieclarkson.com/liability.html) — ([repo copy](LIABILITY_WAIVER.md))
+
+The Software is provided "as is." You are responsible for reviewing generated content, managing credentials, and IDE permissions. The hosted pages above are the canonical human-readable legal documents.
+
 ## License
 
-MIT License.
+MIT License. See [LICENSE](LICENSE).
+
+Copyright (c) 2026 Jacobus Company LLC (dba Superfly Web Designs).

@@ -16,7 +16,9 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "playwright": "^1.40.0"
+    "@modelcontextprotocol/sdk": "1.28.0",
+    "playwright": "^1.40.0",
+    "zod": "^3.25.0"
   },
   "keywords": [
     "demo", "video", "product-demo", "cursor-plugin", "narration",

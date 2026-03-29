@@ -84,7 +84,7 @@ This gives every project a consistent narration voice out of the box. On the fir
 6. Check if `.gitignore` exists. Append these entries (if not already present):
 ```
 .demo-maker/
-OUTPUT/
+OUTPUTS_DEMO_MAKER/
 ```
 
 7. Create `.demo-maker/.env` from the `.env.example` template if it doesn't exist. **NEVER ask the user to paste API keys in chat.** Instead, tell them:
@@ -172,4 +172,4 @@ platform-specific videos into case study pages and launch posts.
 
 ## Scope
 
-All demo data stays inside the project folder under `.demo-maker/` and `OUTPUT/`. Nothing is written outside the project root. API keys are stored locally only and never transmitted except to their respective APIs. All plugins read each other's output from local directories — this works whether plugins are installed manually, via Git clone, or from the marketplace.
+All demo data stays inside the project folder under `.demo-maker/` and `OUTPUTS_DEMO_MAKER/`. Nothing is written outside the project root. API keys are stored locally only and never transmitted except to their respective APIs. All plugins read each other's output from local directories — this works whether plugins are installed manually, via Git clone, or from the marketplace.

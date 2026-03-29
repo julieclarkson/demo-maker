@@ -16,7 +16,6 @@ const defaultProps = {
   storyboard: null,
   narrationDir: null,
   capturesDir: null,
-  aiClips: [],
   colorScheme: LIGHT_SCHEME,
   animationStyle: "motion-graphics" as const,
   availableNarration: [],
